@@ -54,13 +54,11 @@ fix('core/src/main/java/com/invertbit/games/gtw/c/a/Ce.java',
     '.a((float) this.O).m()', count=2)
 
 # jadx emptied this switch (per-nation HUD colours: USA blue, RUSSIA orange, CHINA green).
+# Since feat/more-nations the colours (original values kept) live in nations/Nations.hudColor.
 fix('core/src/main/java/com/invertbit/games/gtw/c/a/Cf.java',
-    '        switch (com.invertbit.games.gtw.c.a.Cg.a[ia.ordinal()]) {\n        }\n',
-    '        switch (com.invertbit.games.gtw.c.a.Cg.a[ia.ordinal()]) {\n'
-    '            case 1:\n                return new com.badlogic.gdx.graphics.Cb(0.0f, 0.52f, 1.0f, 0.3f);\n'
-    '            case 2:\n                return new com.badlogic.gdx.graphics.Cb(1.0f, 0.37f, 0.0f, 0.3f);\n'
-    '            case 3:\n                return new com.badlogic.gdx.graphics.Cb(0.0f, 1.0f, 0.5f, 0.3f);\n'
-    '        }\n')
+    '        switch (com.invertbit.games.gtw.c.a.Cg.a[ia.ordinal()]) {\n        }\n'
+    '        return new com.badlogic.gdx.graphics.Cb(0.0f, 0.52f, 1.0f, 0.3f);\n',
+    '        return com.invertbit.games.gtw.nations.Nations.hudColor(ia);\n')
 
 # jadx overwrote the found element with null after the search loop, so destroyed units were
 # never removed from the render list.
@@ -92,7 +90,37 @@ fix('core/src/main/java/com/invertbit/games/gtw/b/d/Cb.java',
             }
             this.a.remove(next);""")
 
-# feat/more-nations (EUROPE / AFRICA / SOUTH_AMERICA sides): no new jadx corrections were needed.
+# Alliance map render (c/Cp.a(boolean)): jadx lost the inner loop's exit (smali: hasNext()==false
+# -> continue outer loop) and emitted `while (true) { if (it.hasNext()) {...} }`, an infinite loop
+# on the render thread that froze the Alliance screen for every side. Replaced with a bounded loop.
+fix('core/src/main/java/com/invertbit/games/gtw/c/Cp.java',
+    """            java.util.Iterator<com.invertbit.games.gtw.a.Ci> it = this.q.b.iterator();
+            while (true) {
+                if (it.hasNext()) {
+                    com.invertbit.games.gtw.a.Ci next = it.next();
+                    if (z && next.d.contains(cf)) {
+                        this.j.a(cg, com.invertbit.games.gtw.c.b.Ca.a(next.e, this.k));
+                        break;
+                    } else if (!z) {
+                        this.j.a(cg, this.k.a(com.invertbit.games.gtw.d.Ca.Ia.defaultBorder));
+                    }
+                }
+            }
+""",
+    """            if (z) {
+                com.invertbit.games.gtw.a.Ci owner = com.invertbit.games.gtw.nations.AllianceMap.owner(cf, this.q.b);
+                if (owner != null) {
+                    this.j.a(cg, com.invertbit.games.gtw.c.b.Ca.a(owner.e, this.k));
+                }
+            } else {
+                // the original draws the neutral border once per side
+                for (int n = 0; n < this.q.b.size(); n++) {
+                    this.j.a(cg, this.k.a(com.invertbit.games.gtw.d.Ca.Ia.defaultBorder));
+                }
+            }
+""")  # bounded owner lookup: nations/AllianceMap
+
+# feat/more-nations (EUROPE / AFRICA / SOUTH_AMERICA sides): the Cp fix above was found while testing it.
 # Checked while mapping the nation code: the SVG loader's `if (height != null) return;` in
 # c/a/Cb.startElement (svg height never stored) matches the original bytecode (if-nez -> skip),
 # so it is an original-game quirk, not a decompile error, and is deliberately left as is.
