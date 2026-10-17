@@ -51,7 +51,7 @@ public class Cc extends com.badlogic.gdx.f.a.a.Ce {
     protected void l() {
         this.T = new com.badlogic.gdx.f.a.a.Cc(this.S, new com.badlogic.gdx.f.a.a.Cc.Ia(com.invertbit.games.gtw.b.d.Cj.a(this.Q), this.R));
         this.T.i();
-        c(this.T).a(this.O).b(this.P).m().h().g();
+        c(this.T).a((float) this.O).b((float) this.P).m().h().g();
         m();
     }
 

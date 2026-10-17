@@ -73,6 +73,8 @@ public final class Cai extends com.invertbit.games.gtw.c.Ca {
                 ca4.b.a(new com.invertbit.games.e.Cc(com.invertbit.games.e.Ca.tutorial1, com.invertbit.games.e.Ca.menu, new com.invertbit.games.gtw.c.d.Ca(ca4)));
                 ca4.b.a(new com.invertbit.games.e.Cc(com.invertbit.games.e.Ca.gameOver, com.invertbit.games.e.Ca.menu, new com.invertbit.games.gtw.c.Caf(ca4)));
                 ca4.b.a(new com.invertbit.games.e.Cc(com.invertbit.games.e.Ca.settings, com.invertbit.games.e.Ca.menu, new com.invertbit.games.gtw.c.Cas(ca4)));
+                ca4.b.a(new com.invertbit.games.e.Cc(com.invertbit.games.e.Ca.slotsNew, com.invertbit.games.e.Ca.menu, new com.invertbit.games.gtw.c.SlotScreen(ca4, true)));
+                ca4.b.a(new com.invertbit.games.e.Cc(com.invertbit.games.e.Ca.slotsContinue, com.invertbit.games.e.Ca.menu, new com.invertbit.games.gtw.c.SlotScreen(ca4, false)));
                 this.e.a(com.invertbit.games.e.Ca.menu, new java.lang.Object[0]);
                 return;
             }

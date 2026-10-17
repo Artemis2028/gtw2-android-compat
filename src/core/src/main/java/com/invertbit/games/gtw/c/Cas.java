@@ -32,11 +32,7 @@ public final class Cas extends com.invertbit.games.gtw.c.Cb {
         ce.c(cc).m().h().i().d(30.0f);
         ce.i();
         com.badlogic.gdx.f.a.a.Cc cc2 = new com.badlogic.gdx.f.a.a.Cc("", ia2);
-        if (com.invertbit.games.gtw.Cb.b().a()) {
-            cc2.a("Level: EASY");
-        } else {
-            cc2.a("Level: HARD");
-        }
+        cc2.a("Level: " + com.invertbit.games.gtw.Cb.b().d().name());
         cc2.a(new com.invertbit.games.gtw.c.Cau(this, cc2));
         ce.c(cc2).m().h().i().d(30.0f);
         ce.i();

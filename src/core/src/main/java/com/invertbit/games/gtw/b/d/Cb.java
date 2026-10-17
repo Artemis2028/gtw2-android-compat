@@ -195,20 +195,18 @@ public abstract class Cb implements com.invertbit.games.gtw.b.c.Ca {
         com.invertbit.games.gtw.b.Ca ca = cd.a;
         ca.a(cb);
         if (ca.d) {
+            next = null;
             if (this.a != null) {
                 java.util.Iterator<com.badlogic.gdx.graphics.a.Cg> it = this.a.iterator();
                 while (it.hasNext()) {
-                    next = it.next();
-                    if ((next.g instanceof com.invertbit.games.gtw.b.Ca) && ((com.invertbit.games.gtw.b.Ca) next.g) == ca) {
+                    com.badlogic.gdx.graphics.a.Cg candidate = it.next();
+                    if ((candidate.g instanceof com.invertbit.games.gtw.b.Ca) && ((com.invertbit.games.gtw.b.Ca) candidate.g) == ca) {
+                        next = candidate;
                         break;
                     }
                 }
-                next = null;
-                this.a.remove(next);
-            } else {
-                next = null;
-                this.a.remove(next);
             }
+            this.a.remove(next);
         }
         com.invertbit.games.gtw.b.d.Cp.Ia ia = com.invertbit.games.gtw.b.d.Cp.Ia.impact_ogg;
         com.invertbit.games.gtw.b.d.Cp cp = this.e;

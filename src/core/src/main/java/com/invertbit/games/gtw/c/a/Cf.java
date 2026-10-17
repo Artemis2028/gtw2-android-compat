@@ -77,6 +77,12 @@ public final class Cf extends com.badlogic.gdx.f.a.Cb {
 
     private static com.badlogic.gdx.graphics.Cb a(com.invertbit.games.gtw.a.Ci.Ia ia) {
         switch (com.invertbit.games.gtw.c.a.Cg.a[ia.ordinal()]) {
+            case 1:
+                return new com.badlogic.gdx.graphics.Cb(0.0f, 0.52f, 1.0f, 0.3f);
+            case 2:
+                return new com.badlogic.gdx.graphics.Cb(1.0f, 0.37f, 0.0f, 0.3f);
+            case 3:
+                return new com.badlogic.gdx.graphics.Cb(0.0f, 1.0f, 0.5f, 0.3f);
         }
         return new com.badlogic.gdx.graphics.Cb(0.0f, 0.52f, 1.0f, 0.3f);
     }

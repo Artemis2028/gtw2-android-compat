@@ -14,5 +14,7 @@ public enum Ca {
     gameOver,
     tutorial1,
     exit,
-    settings
+    settings,
+    slotsNew,
+    slotsContinue
 }

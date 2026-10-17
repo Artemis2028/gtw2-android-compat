@@ -15,6 +15,8 @@ final class Cl extends com.badlogic.gdx.f.a.Cg {
             com.invertbit.games.e.Ca ca2 = com.invertbit.games.e.Ca.start;
             java.lang.Object[] objArr = new java.lang.Object[1];
             com.invertbit.games.gtw.a.Cg cgB = com.invertbit.games.gtw.c.Ck.b(this.a);
+            // Save the round setup (arsenal/alliances) into the game's slot and the autosave before the round starts.
+            com.invertbit.games.gtw.saves.SaveSlots.saveCurrent(cgB);
             cgB.d = new java.util.ArrayList();
             if (com.invertbit.games.gtw.b.e.Ca.a == null) {
                 com.invertbit.games.gtw.b.e.Ca.a = new com.invertbit.games.gtw.b.e.Ca();

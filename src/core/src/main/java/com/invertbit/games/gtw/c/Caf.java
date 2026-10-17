@@ -97,25 +97,8 @@ public final class Caf extends com.invertbit.games.gtw.c.Cb {
         while (it2.hasNext()) {
             it2.next().a();
         }
-        com.invertbit.games.gtw.a.Cg cg2 = caf.p;
-        int i = 0;
-        for (com.invertbit.games.gtw.a.Ci ci : cg2.b) {
-            com.invertbit.games.gtw.Cc ccA = com.invertbit.games.gtw.Cc.a();
-            ci.i.a(i + "." + ci.e.name(), ccA);
-            ccA.a("player." + i, ci.e.name());
-            java.lang.StringBuilder sb = new java.lang.StringBuilder();
-            for (com.invertbit.games.gtw.b.Ca ca : ci.d) {
-                if (ca instanceof com.invertbit.games.gtw.b.Cf) {
-                    sb.append(((com.invertbit.games.gtw.b.Cf) ca).e).append(",");
-                }
-            }
-            ccA.a("player." + i + ".country", sb.toString());
-            ccA.a("player." + i, ci.e.name());
-            ccA.b();
-            i++;
-        }
-        com.invertbit.games.gtw.Cc.a().a("defcon", cg2.c);
-        com.invertbit.games.gtw.Cc.a().b();
+        // Original save point (end of round): now the selected slot + the autosave slot.
+        com.invertbit.games.gtw.saves.SaveSlots.saveCurrent(caf.p);
         caf.e.a(com.invertbit.games.e.Ca.game2, caf.p);
     }
 }

@@ -13,3 +13,7 @@ dependencies {
     // by decompile/import.sh. Exposed to :android as well.
     api files('../libs/gdx-1.7.0-invertbit.jar')
 }
+
+dependencies {
+    testImplementation 'junit:junit:4.13.2'
+}
