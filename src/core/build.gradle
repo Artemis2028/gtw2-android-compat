@@ -1,0 +1,15 @@
+plugins { id 'java-library' }
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.compilerArgs += ['-Xlint:-options', '-nowarn', '-Xmaxerrs', '5000', '-Xdiags:verbose']
+}
+
+dependencies {
+    // Original (ProGuard-obfuscated) libGDX 1.7.0 bytecode from the APK, class names remapped
+    // by decompile/import.sh. Exposed to :android as well.
+    api files('../libs/gdx-1.7.0-invertbit.jar')
+}

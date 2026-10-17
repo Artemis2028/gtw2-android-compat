@@ -1,0 +1,54 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'com.invertbit.games.gtw.android'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'com.invertbit.games.gtw.android.src'
+        minSdk 21
+        targetSdk 28
+        versionCode 7
+        versionName '1.5-src1'
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    sourceSets.main.jniLibs.srcDirs = ["$buildDir/natives"]
+    lint { abortOnError false; checkReleaseBuilds false }
+    packaging { jniLibs { useLegacyPackaging true } }
+}
+
+configurations { natives }
+
+dependencies {
+    implementation project(':core')
+    // 64-bit natives: libGDX 1.9.4 (JNI-compatible with the 1.7.0 Java side, see repo README)
+    natives 'com.badlogicgames.gdx:gdx-platform:1.9.4:natives-arm64-v8a'
+    natives 'com.badlogicgames.gdx:gdx-platform:1.9.4:natives-x86_64'
+    natives 'com.badlogicgames.gdx:gdx-freetype-platform:1.9.4:natives-arm64-v8a'
+    natives 'com.badlogicgames.gdx:gdx-freetype-platform:1.9.4:natives-x86_64'
+}
+
+// 32-bit natives come straight from the original APK (libGDX 1.7.0), 64-bit from Maven.
+tasks.register('copyNatives') {
+    def out = file("$buildDir/natives")
+    def apk = rootProject.file('../input/original.apk')
+    inputs.file apk
+    outputs.dir out
+    doLast {
+        copy {
+            from(zipTree(apk)) { include 'lib/armeabi/**', 'lib/armeabi-v7a/**', 'lib/x86/**' }
+            into out
+            eachFile { it.path = it.path - 'lib/' }
+            includeEmptyDirs = false
+        }
+        configurations.natives.files.each { jar ->
+            def abi = jar.name =~ /natives-([^.]+)\.jar$/
+            if (abi) {
+                copy { from(zipTree(jar)) { include '*.so' }; into "$out/${abi[0][1]}" }
+            }
+        }
+    }
+}
+tasks.matching { it.name.startsWith('merge') && it.name.endsWith('JniLibFolders') }.configureEach { dependsOn 'copyNatives' }
