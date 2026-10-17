@@ -1,0 +1,9 @@
+tools/
+native/
+decoded/
+signed/
+dist/
+GTW-II-compat-unsigned.apk
+*.jks
+*.keystore
+__pycache__/

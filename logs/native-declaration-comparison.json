@@ -1,0 +1,32 @@
+{
+  "com/badlogic/gdx/math/Matrix4.java": {
+    "original_declaration_count": 9,
+    "missing_or_changed_declarations": [],
+    "added_declarations": []
+  },
+  "com/badlogic/gdx/graphics/glutils/ETC1.java": {
+    "original_declaration_count": 8,
+    "missing_or_changed_declarations": [],
+    "added_declarations": []
+  },
+  "com/badlogic/gdx/graphics/g2d/Gdx2DPixmap.java": {
+    "original_declaration_count": 16,
+    "missing_or_changed_declarations": [],
+    "added_declarations": []
+  },
+  "com/badlogic/gdx/utils/BufferUtils.java": {
+    "original_declaration_count": 4,
+    "missing_or_changed_declarations": [],
+    "added_declarations": []
+  },
+  "com/badlogic/gdx/graphics/g2d/freetype/FreeType.java": {
+    "original_declaration_count": 67,
+    "missing_or_changed_declarations": [],
+    "added_declarations": []
+  },
+  "com/badlogic/gdx/backends/android/AndroidGL20.java": {
+    "original_declaration_count": 164,
+    "missing_or_changed_declarations": [],
+    "added_declarations": []
+  }
+}

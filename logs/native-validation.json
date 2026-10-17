@@ -1,0 +1,18 @@
+{
+  "gdx": {
+    "missing_original_jni_exports": [],
+    "load_segments": [
+      "  LOAD           0x000000 0x0000000000000000 0x0000000000000000 0x044830 0x044830 R E 0x10000",
+      "  LOAD           0x0457a8 0x00000000000557a8 0x00000000000557a8 0x000870 0x000a60 RW  0x10000"
+    ],
+    "alignment_at_least_16kb": true
+  },
+  "gdx-freetype": {
+    "missing_original_jni_exports": [],
+    "load_segments": [
+      "  LOAD           0x000000 0x0000000000000000 0x0000000000000000 0x0a2b50 0x0a2b50 R E 0x10000",
+      "  LOAD           0x0a2ee8 0x00000000000b2ee8 0x00000000000b2ee8 0x005120 0x005120 RW  0x10000"
+    ],
+    "alignment_at_least_16kb": true
+  }
+}

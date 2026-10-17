@@ -1,0 +1,23 @@
+* daemon not running; starting now at tcp:5037
+* daemon started successfully
+Waiting for software emulator boot (1/36)
+Waiting for software emulator boot (2/36)
+Waiting for software emulator boot (3/36)
+Waiting for software emulator boot (4/36)
+Waiting for software emulator boot (5/36)
+Waiting for software emulator boot (6/36)
+Waiting for software emulator boot (7/36)
+Waiting for software emulator boot (8/36)
+Waiting for software emulator boot (9/36)
+android-work/test-runtime.sh: line 11:    16 Segmentation fault      "$ANDROID_HOME/emulator/emulator" -avd test -no-window -no-audio -no-boot-anim -no-snapshot -accel off -gpu swiftshader_indirect -no-metrics > android-work/emulator-test.log 2>&1
+EMULATOR_EXITED
+WARNING      | Using fallback path for the emulator registration directory.
+INFO         | Advertising in: /root/.android/avd/running/pid_16.ini
+WARNING      | Unable to connect to packet streamer, no uwb emulation available
+ERROR        | detected a hanging thread 'QEMU2 CPU0 thread'. No response for 19297 ms
+ERROR        | detected a hanging thread 'QEMU2 CPU1 thread'. No response for 19297 ms
+ERROR        | detected a hanging thread 'QEMU2 main loop'. No response for 15000 ms
+ERROR        | detected a hanging thread 'QEMU2 CPU0 thread'. No response for 15000 ms
+[25:25:20261016,160725.831860:ERROR scoped_ptrace_attach.cc:27] ptrace: Operation not permitted (1)
+[25:25:20261016,160725.831969:ERROR directory_reader_posix.cc:43] opendir /proc/16/task: No such file or directory (2)
+WARNING      | Unable to connect to packet streamer, no bluetooth emulation available

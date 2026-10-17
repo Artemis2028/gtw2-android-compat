@@ -1,0 +1,26 @@
+{
+  "gdx-freetype-1.7.0-sources.jar": {
+    "url": "https://repo.maven.apache.org/maven2/com/badlogicgames/gdx/gdx-freetype/1.7.0/gdx-freetype-1.7.0-sources.jar",
+    "sha256": "19becc86c28a9374df3b7c75bab0510b0ed960af531c8e7a9dd14218b48bd773"
+  },
+  "gdx-freetype-1.9.4-sources.jar": {
+    "url": "https://repo.maven.apache.org/maven2/com/badlogicgames/gdx/gdx-freetype/1.9.4/gdx-freetype-1.9.4-sources.jar",
+    "sha256": "22fa57f5c7689fa336485f3884fa08e656f67a4d163258838019c602c435b983"
+  },
+  "gdx-backend-android-1.7.0-sources.jar": {
+    "url": "https://repo.maven.apache.org/maven2/com/badlogicgames/gdx/gdx-backend-android/1.7.0/gdx-backend-android-1.7.0-sources.jar",
+    "sha256": "52c793d694d8e9fdc1776e03012c925b0dbcd6383b2c30ec85a53ea6bb9bfaa6"
+  },
+  "gdx-1.9.4-sources.jar": {
+    "url": "https://repo.maven.apache.org/maven2/com/badlogicgames/gdx/gdx/1.9.4/gdx-1.9.4-sources.jar",
+    "sha256": "29e7b3718cafbb5ceb777a183b7c8b46deb8a480ae718221b7e7fc411157a509"
+  },
+  "gdx-backend-android-1.9.4-sources.jar": {
+    "url": "https://repo.maven.apache.org/maven2/com/badlogicgames/gdx/gdx-backend-android/1.9.4/gdx-backend-android-1.9.4-sources.jar",
+    "sha256": "2f0e83296417907e2862aba60a801c61af5b02a52b5e866ea4d040201e609a8c"
+  },
+  "gdx-1.7.0-sources.jar": {
+    "url": "https://repo.maven.apache.org/maven2/com/badlogicgames/gdx/gdx/1.7.0/gdx-1.7.0-sources.jar",
+    "sha256": "f565f7af7148ef6419a4b537b4fc98f17f1d52ed90677826ca557d1997833e19"
+  }
+}

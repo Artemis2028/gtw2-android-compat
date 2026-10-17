@@ -1,0 +1,26 @@
+source:
+	/workspace/scratch/0bd8de6c4ab2/android-work
+zipalign location: BUILT_IN 
+	/tmp/uapksigner-16611703557766641361/linux-zipalign-33_0_25448121570364852922.tmp
+keystore:
+	[0] 161a0018 /tmp/temp_463454497843761333_debug.keystore (DEBUG_EMBEDDED)
+
+01. GTW-II-compat-unsigned.apk
+
+	SIGN
+	file: /workspace/scratch/0bd8de6c4ab2/android-work/GTW-II-compat-unsigned.apk (3.15 MiB)
+	checksum: e891ffef0c046c92db04756e1bda5b0c89daf0f28831dfc12b91152865896b56 (sha256)
+	- zipalign success
+	- sign success
+
+	VERIFY
+	file: /workspace/scratch/0bd8de6c4ab2/android-work/signed/GTW-II-compat-aligned-debugSigned.apk (3.17 MiB)
+	checksum: 94bd59f74ef4602b4f6030246c1512519b803481c892945656315394c2f49b6f (sha256)
+	- zipalign verified
+	- signature verified [v1, v2, v3]
+		Subject: CN=Android Debug, OU=Android, O=US, L=US, ST=US, C=US
+		SHA256: 1e08a903aef9c3a721510b64ec764d01d3d094eb954161b62544ea8f187b5953 / SHA256withRSA
+		Expires: Thu Mar 10 14:10:05 CST 2044
+
+[Fri Oct 16 16:05:45 CDT 2026][v1.3.0]
+Successfully processed 1 APKs and 0 errors in 0.42 seconds.
