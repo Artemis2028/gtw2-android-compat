@@ -10,21 +10,11 @@ final class Cap extends com.badlogic.gdx.f.a.Cg {
 
     @Override // com.badlogic.gdx.f.a.Cg
     public final boolean a() {
-        if (com.invertbit.games.gtw.Cc.a().b.d("v1_player.0")) {
-            com.invertbit.games.gtw.Ca ca = this.a.e;
-            com.invertbit.games.e.Ca ca2 = com.invertbit.games.e.Ca.game2;
-            com.invertbit.games.gtw.a.Cg cg = new com.invertbit.games.gtw.a.Cg();
-            cg.c();
-            com.invertbit.games.gtw.a.Cf cf = new com.invertbit.games.gtw.a.Cf();
-            cf.a(com.invertbit.games.gtw.Cc.a(), 0);
-            cg.a(cf);
-            com.invertbit.games.gtw.a.Ca ca3 = new com.invertbit.games.gtw.a.Ca();
-            ca3.a(com.invertbit.games.gtw.Cc.a(), 1);
-            cg.a(ca3);
-            cg.c = com.invertbit.games.gtw.Cc.a().b("defcon");
-            ca.a(ca2, cg);
+        // Original: load the single save, or start a new game if there is none.
+        if (com.invertbit.games.gtw.saves.SaveSlots.anyExists()) {
+            this.a.e.a(com.invertbit.games.e.Ca.slotsContinue, new java.lang.Object[0]);
         } else {
-            this.a.e.a(com.invertbit.games.e.Ca.game0, new java.lang.Object[0]);
+            this.a.e.a(com.invertbit.games.e.Ca.slotsNew, new java.lang.Object[0]);
         }
         return true;
     }

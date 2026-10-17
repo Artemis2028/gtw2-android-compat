@@ -12,13 +12,10 @@ final class Cau extends com.badlogic.gdx.f.a.Cg {
 
     @Override // com.badlogic.gdx.f.a.Cg
     public final boolean a() {
-        if (com.invertbit.games.gtw.Cb.b().a()) {
-            com.invertbit.games.gtw.Cb.b().a(com.invertbit.games.gtw.Cb.Ia.HARD);
-            this.a.a("Level: HARD");
-            return true;
-        }
-        com.invertbit.games.gtw.Cb.b().a(com.invertbit.games.gtw.Cb.Ia.EASY);
-        this.a.a("Level: EASY");
+        // Default difficulty for new games: EASY -> NORMAL -> HARD.
+        com.invertbit.games.gtw.Cb.Ia next = com.invertbit.games.gtw.Cb.b().d().next();
+        com.invertbit.games.gtw.Cb.b().a(next);
+        this.a.a("Level: " + next.name());
         return true;
     }
 }

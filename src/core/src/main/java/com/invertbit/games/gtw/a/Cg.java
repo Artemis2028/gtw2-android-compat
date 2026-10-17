@@ -96,12 +96,36 @@ public class Cg {
                             }
                         }
                         java.util.Collections.sort(ca.a);
-                        if (com.invertbit.games.gtw.Cb.b().a()) {
-                            java.util.Collections.shuffle(ca.a);
+                        // AI target order. Original: EASY = random order, HARD = nearest first.
+                        // NORMAL (new): nearest first, but each distance is jittered by +/-35%.
+                        switch (com.invertbit.games.gtw.Cb.b().e()) {
+                            case EASY:
+                                java.util.Collections.shuffle(ca.a);
+                                break;
+                            case NORMAL:
+                                a(ca.a, 0.35f);
+                                break;
+                            default:
+                                break;
                         }
                     }
                 }
             }
         }
+    }
+
+    /** Stable sort by distance * random factor in [1-jitter, 1+jitter]. */
+    static void a(java.util.List<com.invertbit.games.gtw.a.Cd> list, float jitter) {
+        final java.util.IdentityHashMap<com.invertbit.games.gtw.a.Cd, java.lang.Float> key = new java.util.IdentityHashMap<>();
+        java.util.Random random = new java.util.Random();
+        for (com.invertbit.games.gtw.a.Cd cd : list) {
+            key.put(cd, cd.c * (1.0f - jitter + (2.0f * jitter * random.nextFloat())));
+        }
+        java.util.Collections.sort(list, new java.util.Comparator<com.invertbit.games.gtw.a.Cd>() {
+            @Override
+            public int compare(com.invertbit.games.gtw.a.Cd x, com.invertbit.games.gtw.a.Cd y) {
+                return java.lang.Float.compare(key.get(x), key.get(y));
+            }
+        });
     }
 }

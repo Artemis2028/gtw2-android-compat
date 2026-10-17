@@ -55,7 +55,7 @@ identical. See "Next steps".
    the `access$` accessors). Only names and flags change. apktool reassembles the result.
 2. jadx 1.5.3 (`--no-imports`) decompiles the game code into `core/`.
 3. dex2jar 2.4 turns the renamed libGDX bytecode into `libs/gdx-1.7.0-invertbit.jar`.
-4. `fixes.py` applies 7 hand fixes (below). `drop_bad_casts.py` then removes about 65 casts that jadx
+4. `fixes.py` applies 12 hand fixes (below). `drop_bad_casts.py` then removes about 65 casts that jadx
    inferred wrongly on generic libGDX calls (mostly `Table.add(actor)`), guided by javac errors.
 
 ### Hand fixes (`decompile/fixes.py`)
@@ -66,14 +66,77 @@ identical. See "Next steps".
 - `gtw/c/d/Ca`: checked `IOException` from an undeclared constructor, now wrapped in `UncheckedIOException`.
 - `c/a/Ca` (SVG loader): declared `throws Exception`. Callers already catch it.
 
+Runtime decompile bugs (compiled fine, but behaved differently from the original bytecode):
+- `b/a/Ca.a(String)`: jadx dropped the exit of a `while (true)` loop, so the loading screen hung (GL thread at 100%).
+- `gtw/c/a/Cc`, `gtw/c/a/Ce` (game buttons): dropped `int`->`float` casts made `Cell.width(float)` resolve to `Cell.colspan(int)`, so every button was laid out wrong.
+- `gtw/c/a/Cf` (battle HUD): a `switch` on nation was emptied (USA/RUSSIA/CHINA colours).
+- `gtw/b/d/Cb`: after the search loop the found render instance was overwritten with `null`, so destroyed units were never removed from the render list.
+
+The last three were found with `decompile/check_sigdiff.py` (invoked method signatures per class,
+original smali vs. the built APK) and `decompile/check_constdiff.py` (literal constants per class).
+Run them after any re-import:
+```sh
+java -jar apktool.jar d -r -o /tmp/built android/build/outputs/apk/debug/android-debug.apk
+python3 decompile/check_sigdiff.py   <apktool-decoded renamed.apk>/smali /tmp/built
+python3 decompile/check_constdiff.py <apktool-decoded renamed.apk>/smali /tmp/built
+```
+Remaining differences are benign: `List` vs `ArrayList` receivers, javac bridge methods, and
+string concatenations that javac folds.
+
 No game classes were lost. All 141 game source files decompiled cleanly enough to compile (the original launcher was replaced by hand). The one jadx warning is a
 type-inference note in `gtw/b/e/Ch` (code is present). The ad SDK (`com.google.android.gms`,
 `com.google.ads`) and `android.support` are dropped. The launcher that wired the ads was rewritten.
 
 ## Status
-- `./gradlew assembleDebug` builds.
-- Not yet run on a device or emulator. The decompiled build needs the same check as compat1
-  (title screen, match start, map, AI turns, saves).
+- `./gradlew assembleDebug` builds; CI builds it on every push.
+- Emulator (API 34 x86_64, software GL): reaches the title screen with the same layout as compat1,
+  loads a save, and runs a DEFCON round (AI attacks, HUD). Not yet tested on a real phone.
+
+## Added features (not in the original game)
+Hand-written on top of the decompiled code. `import.sh` regenerates only the decompiled sources,
+so these changes would have to be re-applied after a re-import.
+
+### Save slots and autosave
+- **Original mechanism:** one save in the libGDX preferences file `GTWGame` (Android
+  `shared_prefs/GTWGame.xml`). Keys `v1_player.N`, `v1_player.N.country` (comma list of
+  countries), `v1_N.NATION.AB.<CITY|SILO|BOMBER|SUBMARINE>.m5/m10/m15` and `v1_N.NATION.points`
+  (arsenal budget), and `v1_defcon`. It is written by the round-summary screen (`gtw/c/Caf`) at the
+  end of each DEFCON round and read by "Continue game" (`gtw/c/Cap`).
+- **Now** (`gtw/saves/SaveSlots.java`): slots 1-4 plus an autosave, all in the same file with the
+  same key format.
+  - **Slot 1** is the original key set, unchanged, so an existing save appears as slot 1 and the
+    original game can still read it.
+  - **Slots 2-4** use prefix `v1_s2_` ... `v1_s4_`; the **autosave** uses `v1_auto_`.
+  - Each save also gets `save.time` (epoch ms) and `save.level` (difficulty).
+- **New game:** pick a slot (`gtw/c/SlotScreen`), then the original nation/opponent screens.
+  Used slots are marked `[overwrite]`; the slot is written at the end of the first round.
+- **Continue game:** lists the saves that exist (autosave first), e.g.
+  `Slot 2: USA vs CHINA  DEFCON 3  HARD  2026-10-17 14:05`. Original saves show `(older save)`.
+  With no saves at all it goes to New game, as before.
+- **When saves are written:**
+  - end of every round: the game's slot **and** the autosave;
+  - pressing *Start DEFCON*: the autosave only, so the round setup is kept even if the app is
+    killed mid-battle.
+  - A game continued from the autosave keeps saving only to the autosave.
+
+### Difficulty (Easy / Normal / Hard)
+- **Original:** a global EASY/HARD toggle in Settings (pref `v1_level`, default EASY). Read through
+  `gtw.Cb.a()` in two places:
+  - human launches per DEFCON round (`gtw/a/Cf.b()`): EASY 8, HARD 5;
+  - AI target order (`gtw/a/Cg.d()`): EASY shuffles the AI's attack list (random targets), HARD
+    keeps it sorted nearest-first.
+  - The AI's own launch budget (4, plus 2 per allied country) and its arsenal split are not tied to the level.
+- **Now:**
+
+  | Level | Your launches per round (+2 per allied country) | AI target choice |
+  |-------|------|------|
+  | Easy (original) | 8 | random order |
+  | Normal (new) | 6 | nearest first, each distance jittered by ±35 % |
+  | Hard (original) | 5 | strictly nearest first |
+
+  - Choose the level on the New game slot screen; Settings cycles the default.
+  - The level is stored in the save (`save.level`) and restored on Continue. Original saves use
+    the Settings level, as they did before.
 
 ## Next steps
 - Run it on a phone and compare behaviour with compat1.

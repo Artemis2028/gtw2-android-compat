@@ -10,7 +10,7 @@ final class Cao extends com.badlogic.gdx.f.a.Cg {
 
     @Override // com.badlogic.gdx.f.a.Cg
     public final boolean a() {
-        this.a.e.a(com.invertbit.games.e.Ca.game0, new java.lang.Object[0]);
+        this.a.e.a(com.invertbit.games.e.Ca.slotsNew, new java.lang.Object[0]);
         return true;
     }
 }
