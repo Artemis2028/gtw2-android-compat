@@ -7,7 +7,16 @@ features can be added in Java.
 cd src
 ./gradlew assembleDebug        # -> android/build/outputs/apk/debug/android-debug.apk
 ```
-Needs JDK 17+ and an Android SDK (`ANDROID_HOME` or `local.properties`). The debug APK
+Needs JDK 17+ and an Android SDK (`ANDROID_HOME` or `local.properties`).
+
+**Signing:** debug builds are signed with the same public debug key as the compat build: the
+`debug.keystore` embedded in Uber APK Signer 1.3.0 (alias `androiddebugkey`, password
+`android`). Certificate SHA-256:
+`1e08a903aef9c3a721510b64ec764d01d3d094eb954161b62544ea8f187b5953`.
+`python3 signing/fetch-debug-key.py` extracts it from the checksum-pinned jar listed in
+`../toolchain.json`, the same one `rebuild.py` uses. CI does this and fails if the certificate
+differs, so every source build installs over the previous one. The keystore is not committed. Without it,
+Gradle signs with your machine's own debug key, and that APK will not update a CI build. The debug APK
 installs as a third package, `com.invertbit.games.gtw.android.src` ("GTW II (Source)"),
 next to the original and the compat build.
 

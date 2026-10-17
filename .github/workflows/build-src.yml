@@ -24,6 +24,8 @@ jobs:
         with:
           packages: 'platform-tools platforms;android-34 build-tools;34.0.0'
       - uses: gradle/actions/setup-gradle@v4
+      - name: Fetch the stable public debug key (same as the compat build)
+        run: python3 signing/fetch-debug-key.py
       - name: assembleDebug
         run: ./gradlew --no-daemon :core:test assembleDebug
       - name: Inspect APK
@@ -33,6 +35,14 @@ jobs:
           "$BT/aapt2" dump badging "$APK" | head -n 4
           "$BT/apksigner" verify --print-certs "$APK"
           sha256sum "$APK"
+      - name: Check signing certificate is the stable key
+        run: |
+          APK=android/build/outputs/apk/debug/android-debug.apk
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n1)
+          EXPECTED=1e08a903aef9c3a721510b64ec764d01d3d094eb954161b62544ea8f187b5953
+          GOT=$("$BT/apksigner" verify --print-certs "$APK" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
+          echo "signing cert SHA-256: $GOT"
+          test "$GOT" = "$EXPECTED"
       - uses: actions/upload-artifact@v4
         with:
           name: GTW-II-src-debug-apk

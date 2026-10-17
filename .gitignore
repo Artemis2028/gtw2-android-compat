@@ -12,3 +12,5 @@ src/build/
 src/*/build/
 src/local.properties
 src/decompile/.tools/
+src/signing/*.keystore
+src/signing/*.jks
