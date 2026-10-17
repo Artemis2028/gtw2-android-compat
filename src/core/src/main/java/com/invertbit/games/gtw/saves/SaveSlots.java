@@ -114,8 +114,8 @@ public final class SaveSlots {
         cc.b();
     }
 
-    /** End of a DEFCON round (the original save point): the current slot and the autosave. */
-    public static void saveRoundEnd(Cg cg) {
+    /** Start and end of every DEFCON round: the game's slot and the autosave. */
+    public static void saveCurrent(Cg cg) {
         if (current != AUTOSAVE) {
             save(cg, current);
         }

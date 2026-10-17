@@ -109,14 +109,13 @@ so these changes would have to be re-applied after a re-import.
   - **Slots 2-4** use prefix `v1_s2_` ... `v1_s4_`; the **autosave** uses `v1_auto_`.
   - Each save also gets `save.time` (epoch ms) and `save.level` (difficulty).
 - **New game:** pick a slot (`gtw/c/SlotScreen`), then the original nation/opponent screens.
-  Used slots are marked `[overwrite]`; the slot is written at the end of the first round.
+  A used slot is overwritten as soon as the first round starts (*Start DEFCON*).
 - **Continue game:** lists the saves that exist (autosave first), e.g.
   `Slot 2: USA vs CHINA  DEFCON 3  HARD  2026-10-17 14:05`. Original saves show `(older save)`.
   With no saves at all it goes to New game, as before.
-- **When saves are written:**
-  - end of every round: the game's slot **and** the autosave;
-  - pressing *Start DEFCON*: the autosave only, so the round setup is kept even if the app is
-    killed mid-battle.
+- **When saves are written:** the game's slot **and** the autosave, both when *Start DEFCON* is
+  pressed (round setup, so a new game is in its slot right away and survives the app being
+  killed mid-battle) and at the end of every round (the original save point).
   - A game continued from the autosave keeps saving only to the autosave.
 
 ### Difficulty (Easy / Normal / Hard)

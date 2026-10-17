@@ -98,7 +98,7 @@ public final class Caf extends com.invertbit.games.gtw.c.Cb {
             it2.next().a();
         }
         // Original save point (end of round): now the selected slot + the autosave slot.
-        com.invertbit.games.gtw.saves.SaveSlots.saveRoundEnd(caf.p);
+        com.invertbit.games.gtw.saves.SaveSlots.saveCurrent(caf.p);
         caf.e.a(com.invertbit.games.e.Ca.game2, caf.p);
     }
 }

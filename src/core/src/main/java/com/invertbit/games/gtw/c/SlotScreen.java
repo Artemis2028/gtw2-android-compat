@@ -43,7 +43,7 @@ public final class SlotScreen extends com.invertbit.games.gtw.c.Cb {
             ce.c(diff).m().h().i().d(30.0f);
             ce.i();
             com.badlogic.gdx.f.a.a.Cc.Ia note = new com.badlogic.gdx.f.a.a.Cc.Ia(com.invertbit.games.gtw.b.d.Cj.a(com.invertbit.games.gtw.b.e.Cg.s36), com.invertbit.games.gtw.b.e.Cg.s37.h);
-            ce.c(new com.badlogic.gdx.f.a.a.Cc("A used slot is overwritten at the end of the first DEFCON.", note)).m().h().i().d(20.0f);
+            ce.c(new com.badlogic.gdx.f.a.a.Cc("A used slot is overwritten when the first DEFCON starts.", note)).m().h().i().d(20.0f);
             ce.i();
         }
         for (int slot = this.newGame ? SaveSlots.FIRST : SaveSlots.AUTOSAVE; slot <= SaveSlots.LAST; slot++) {

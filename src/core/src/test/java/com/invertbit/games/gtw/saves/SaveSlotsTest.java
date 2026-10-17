@@ -103,16 +103,16 @@ public class SaveSlotsTest {
     }
 
     @Test
-    public void roundEndWritesCurrentSlotAndAutosave() {
+    public void saveWritesCurrentSlotAndAutosave() {
         SaveSlots.select(2);
-        SaveSlots.saveRoundEnd(game(Ci.Ia.CHINA, Ci.Ia.USA));
+        SaveSlots.saveCurrent(game(Ci.Ia.CHINA, Ci.Ia.USA));
         assertTrue(SaveSlots.exists(2));
         assertTrue(SaveSlots.exists(SaveSlots.AUTOSAVE));
         assertFalse(SaveSlots.exists(1));
         assertTrue(store.containsKey("v1_auto_player.0"));
         SaveSlots.select(SaveSlots.AUTOSAVE);
         store.clear();
-        SaveSlots.saveRoundEnd(game(Ci.Ia.CHINA, Ci.Ia.USA));
+        SaveSlots.saveCurrent(game(Ci.Ia.CHINA, Ci.Ia.USA));
         assertTrue(SaveSlots.exists(SaveSlots.AUTOSAVE));
         assertFalse(SaveSlots.exists(2));
     }
