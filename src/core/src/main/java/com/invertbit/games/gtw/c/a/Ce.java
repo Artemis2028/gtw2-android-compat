@@ -11,11 +11,11 @@ public final class Ce extends com.invertbit.games.gtw.c.a.Cc {
         this.V.h = com.invertbit.games.gtw.b.e.Cc.a(com.invertbit.games.gtw.b.Cf.Ib.valueOf(cf.e));
         this.T = new com.badlogic.gdx.f.a.a.Cc(this.S, new com.badlogic.gdx.f.a.a.Cc.Ia(com.invertbit.games.gtw.b.d.Cj.a(this.Q), this.R));
         this.T.i();
-        c(this.T).a(this.O).m().h().g();
+        c(this.T).a((float) this.O).m().h().g();
         i();
         this.W = new com.badlogic.gdx.f.a.a.Cc(this.V.h.c + "/" + this.V.h.a + "/" + this.V.h.b, new com.badlogic.gdx.f.a.a.Cc.Ia(com.invertbit.games.gtw.b.d.Cj.a(com.invertbit.games.gtw.b.e.Cg.s30), com.invertbit.games.gtw.b.e.Cg.s30.h));
         this.W.i();
-        c(this.W).a(this.O).m().h().g().e();
+        c(this.W).a((float) this.O).m().h().g().e();
         m();
     }
 
