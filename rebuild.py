@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rebuild the GTW II compat APK from input/original.apk.
+"""Rebuild the GTW II compat APK from original/GTW-II-1.5.apk.
 
 Requires Python 3 and Java 17+, plus internet access on first run. Downloads
 checksum-pinned Apktool, Uber APK Signer and libGDX 1.9.4 natives (Maven Central),
@@ -32,16 +32,16 @@ def fetch(dest, info):
 for name, info in cfg['tools'].items(): fetch(tools / name, info)
 for name, info in cfg['natives'].items(): fetch(native / name, info)
 
-original = root / 'input/original.apk'
+original = root / 'original/GTW-II-1.5.apk'
 if sha256(original) != cfg['original_apk_sha256']:
-    raise SystemExit('input/original.apk does not match the pinned original APK hash')
+    raise SystemExit('original/GTW-II-1.5.apk does not match the pinned original APK hash')
 
 for jar in native.glob('*.jar'):
     with zipfile.ZipFile(jar) as z: z.extractall(tools / jar.stem)
 
 def run(*args): subprocess.run([str(a) for a in args], cwd=root, check=True)
 
-run('java', '-jar', tools / 'apktool.jar', 'd', 'input/original.apk', '-o', 'decoded', '-f')
+run('java', '-jar', tools / 'apktool.jar', 'd', 'original/GTW-II-1.5.apk', '-o', 'decoded', '-f')
 run(sys.executable, root / 'patch/apply.py')
 run('java', '-jar', tools / 'apktool.jar', 'b', 'decoded', '-o', 'GTW-II-compat-unsigned.apk')
 

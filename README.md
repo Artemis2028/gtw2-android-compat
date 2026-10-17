@@ -27,7 +27,7 @@ Install `GTW-II-1.5-compat1.apk`. The separate package `com.invertbit.games.gtw.
 - ARM64 device behavior and actual 16 KiB runtime behavior remain untested.
 
 ## Rebuild
-Run `python3 rebuild.py` with Python 3, Java 17+, and internet access. It downloads checksum-pinned Apktool 2.12.1, Uber APK Signer 1.3.0 and the libGDX 1.9.4 arm64-v8a/x86_64 natives from Maven Central (all pinned in `toolchain.json`), verifies `input/original.apk` against its pinned hash, applies the patch, and writes `dist/GTW-II-1.5-compat.apk`.
+Run `python3 rebuild.py` with Python 3, Java 17+, and internet access. It downloads checksum-pinned Apktool 2.12.1, Uber APK Signer 1.3.0 and the libGDX 1.9.4 arm64-v8a/x86_64 natives from Maven Central (all pinned in `toolchain.json`), verifies `original/GTW-II-1.5.apk` against its pinned hash, applies the patch, and writes `dist/GTW-II-1.5-compat.apk`.
 
 ### CI
 `.github/workflows/build.yml` runs on pushes to `main`, pull requests, `v*` tags and manual dispatch. It rebuilds the APK, checks it with `zipalign -c` and `apksigner verify`, uploads it as the `GTW-II-1.5-compat-apk` artifact, and attaches it to a GitHub Release for tags. Rebuilds are not byte-identical to compat1 (Apktool/signing timestamps), but are functionally the same.

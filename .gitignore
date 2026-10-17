@@ -7,3 +7,8 @@ GTW-II-compat-unsigned.apk
 *.jks
 *.keystore
 __pycache__/
+src/.gradle/
+src/build/
+src/*/build/
+src/local.properties
+src/decompile/.tools/
