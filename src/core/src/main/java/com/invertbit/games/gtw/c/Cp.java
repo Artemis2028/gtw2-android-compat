@@ -81,7 +81,7 @@ public final class Cp extends com.invertbit.games.gtw.c.Cb {
             java.util.Iterator<com.invertbit.games.gtw.b.Cf.Ib> it = this.p.a(this.q.a().e, this.q.c).iterator();
             while (it.hasNext()) {
                 com.invertbit.games.gtw.b.Cf cf = com.invertbit.games.gtw.b.a.Ca.a().b().get(it.next().name());
-                if ((this.r >= this.q.c || this.q.a().d.contains(cf) || this.q.b().d.contains(cf) || cf.e.equalsIgnoreCase(this.q.b().e.name())) ? false : true) {
+                if ((this.r >= this.q.c || this.q.a().d.contains(cf) || this.q.b().d.contains(cf) || com.invertbit.games.gtw.nations.Nations.isHome(this.q.b().e, cf.e)) ? false : true) {
                     com.invertbit.games.gtw.c.a.Ce ce2 = new com.invertbit.games.gtw.c.a.Ce(cf, com.invertbit.games.gtw.b.e.Cg.s37, com.invertbit.games.gtw.b.e.Cg.s37.h);
                     com.invertbit.games.c.a.a.Cc cc2 = cf.f;
                     float f = (cc2.a.a * c) / 2880.0f;

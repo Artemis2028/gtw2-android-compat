@@ -92,6 +92,12 @@ fix('core/src/main/java/com/invertbit/games/gtw/b/d/Cb.java',
             }
             this.a.remove(next);""")
 
+# feat/more-nations (EUROPE / AFRICA / SOUTH_AMERICA sides): no new jadx corrections were needed.
+# Checked while mapping the nation code: the SVG loader's `if (height != null) return;` in
+# c/a/Cb.startElement (svg height never stored) matches the original bytecode (if-nez -> skip),
+# so it is an original-game quirk, not a decompile error, and is deliberately left as is.
+# The obsolete enum switch maps a/Ch, b/d/Cc and c/a/Cg were deleted with the code that used them.
+
 def main():
     bad = 0
     for path, old, new, count in FIXES:

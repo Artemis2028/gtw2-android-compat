@@ -17,7 +17,12 @@ public class Ci {
     public enum Ia {
         USA,
         RUSSIA,
-        CHINA
+        CHINA,
+        // Added sides (see com.invertbit.games.gtw.nations.Nations). Appended so the
+        // ordinals of the original three stay unchanged; saves store name().
+        EUROPE,
+        AFRICA,
+        SOUTH_AMERICA
     }
 
     public void a() {
@@ -40,7 +45,7 @@ public class Ci {
         this.g = 0;
         this.h = 0;
         for (com.invertbit.games.gtw.b.Ca ca2 : this.d) {
-            if ((ca2 instanceof com.invertbit.games.gtw.b.Cf) && !this.e.name().equalsIgnoreCase(((com.invertbit.games.gtw.b.Cf) ca2).e)) {
+            if ((ca2 instanceof com.invertbit.games.gtw.b.Cf) && !com.invertbit.games.gtw.nations.Nations.isHome(this.e, ((com.invertbit.games.gtw.b.Cf) ca2).e)) {
                 this.a += 2;
             }
         }
@@ -66,7 +71,7 @@ public class Ci {
             this.h = (((com.invertbit.games.gtw.b.Ci) ca).f * ((com.invertbit.games.gtw.b.Cb) ((com.invertbit.games.gtw.b.Ci) ca)).e) + this.h;
             return;
         }
-        if ((ca instanceof com.invertbit.games.gtw.b.Cf) && !this.e.name().equalsIgnoreCase(((com.invertbit.games.gtw.b.Cf) ca).e)) {
+        if ((ca instanceof com.invertbit.games.gtw.b.Cf) && !com.invertbit.games.gtw.nations.Nations.isHome(this.e, ((com.invertbit.games.gtw.b.Cf) ca).e)) {
             this.a += 2;
             ((com.invertbit.games.gtw.b.Cf) ca).c = this.e;
             this.i.a((com.invertbit.games.gtw.b.Cf) ca);

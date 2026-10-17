@@ -111,38 +111,12 @@ public abstract class Cb implements com.invertbit.games.gtw.b.c.Ca {
         com.badlogic.gdx.graphics.a.Cj cjA;
         com.badlogic.gdx.graphics.a.Cj cjA2;
         com.invertbit.games.gtw.b.Ca ca2 = (com.invertbit.games.gtw.b.Ca) cg.g;
-        switch (com.invertbit.games.gtw.b.d.Cc.a[ca2.c.ordinal()]) {
-            case 1:
-                cjA = ca.a(com.invertbit.games.gtw.d.Ca.Ia.usaMapObject);
-                break;
-            case 2:
-                cjA = ca.a(com.invertbit.games.gtw.d.Ca.Ia.russiaMapObject);
-                break;
-            case 3:
-                cjA = ca.a(com.invertbit.games.gtw.d.Ca.Ia.chinaMapObject);
-                break;
-            default:
-                cjA = ca.a(com.invertbit.games.gtw.d.Ca.Ia.defaultMapObject);
-                break;
-        }
+        cjA = ca.a(com.invertbit.games.gtw.nations.Nations.mapObject(ca2.c, false));
         if (ca2 instanceof com.invertbit.games.gtw.b.Ci) {
             com.invertbit.games.gtw.b.Ci ci = (com.invertbit.games.gtw.b.Ci) ca2;
             if (ci.i) {
                 if (((com.invertbit.games.gtw.b.Cb) ci).e == 0) {
-                    switch (com.invertbit.games.gtw.b.d.Cc.a[ca2.c.ordinal()]) {
-                        case 1:
-                            cjA2 = ca.a(com.invertbit.games.gtw.d.Ca.Ia.usaInactiveMapObject);
-                            break;
-                        case 2:
-                            cjA2 = ca.a(com.invertbit.games.gtw.d.Ca.Ia.russiaInactiveMapObject);
-                            break;
-                        case 3:
-                            cjA2 = ca.a(com.invertbit.games.gtw.d.Ca.Ia.chinaInactiveMapObject);
-                            break;
-                        default:
-                            cjA2 = ca.a(com.invertbit.games.gtw.d.Ca.Ia.defaultMapObject);
-                            break;
-                    }
+                    cjA2 = ca.a(com.invertbit.games.gtw.nations.Nations.mapObject(ca2.c, true));
                     cjA = cjA2;
                 }
             }
