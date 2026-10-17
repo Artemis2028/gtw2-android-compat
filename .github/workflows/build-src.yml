@@ -40,7 +40,7 @@ jobs:
           APK=android/build/outputs/apk/debug/android-debug.apk
           BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n1)
           EXPECTED=1e08a903aef9c3a721510b64ec764d01d3d094eb954161b62544ea8f187b5953
-          GOT=$("$BT/apksigner" verify --print-certs "$APK" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
+          GOT=$("$BT/apksigner" verify --print-certs "$APK" | grep -m1 -oE 'certificate SHA-256 digest: [0-9a-f]{64}' | awk '{print $NF}')
           echo "signing cert SHA-256: $GOT"
           test "$GOT" = "$EXPECTED"
       - uses: actions/upload-artifact@v4
