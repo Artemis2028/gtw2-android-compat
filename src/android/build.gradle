@@ -33,7 +33,7 @@ dependencies {
 // 32-bit natives come straight from the original APK (libGDX 1.7.0), 64-bit from Maven.
 tasks.register('copyNatives') {
     def out = file("$buildDir/natives")
-    def apk = rootProject.file('../input/original.apk')
+    def apk = rootProject.file('../original/GTW-II-1.5.apk')
     inputs.file apk
     outputs.dir out
     doLast {

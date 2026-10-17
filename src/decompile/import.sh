@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Regenerates the decompiled game sources and the prebuilt (obfuscated) libGDX jar
-# from ../input/original.apk. Normally you do NOT need to run this: the output is committed.
+# from ../original/GTW-II-1.5.apk. Normally you do NOT need to run this: the output is committed.
 #
 # Needs: java 17+, python3, unzip, curl. Tools are downloaded to decompile/.tools/.
 #   jadx 1.5.3, dex2jar 2.4, apktool 2.12.1.
@@ -17,7 +17,7 @@
 #  5. decompile/drop_bad_casts.py removes casts jadx inferred wrongly (javac-error driven).
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")/.." && pwd)
-APK="$HERE/../input/original.apk"
+APK="$HERE/../original/GTW-II-1.5.apk"
 T="$HERE/decompile/.tools"; mkdir -p "$T"
 get() { [ -f "$T/$2" ] || curl -sfL -o "$T/$2" "$1"; }
 get https://github.com/skylot/jadx/releases/download/v1.5.3/jadx-1.5.3.zip jadx.zip

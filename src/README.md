@@ -1,6 +1,6 @@
 # GTW II — decompiled, buildable source (branch `decompiled`)
 
-Gradle project rebuilt from the original APK (`../input/original.apk`, GTW II 1.5) so new
+Gradle project rebuilt from the original APK (`../original/GTW-II-1.5.apk`, GTW II 1.5) so new
 features can be added in Java.
 
 ```sh
