@@ -10,6 +10,8 @@ and so the libGDX bytecode can be compiled against. All changes are names/flags 
     a synthetic method with no non-synthetic twin (same name+params) loses synthetic/bridge.
  5. Game code (com/invertbit): private fields become package-private, because jadx inlines the
     synthetic access$ accessors that inner classes used.
+ 6. String literals naming a renamed class (libGDX loads AndroidInputThreePlus, AndroidAudio...
+    via Class.forName) are rewritten too.
 """
 import sys, re
 from pathlib import Path
@@ -30,6 +32,8 @@ for p in smali_dir.rglob('*.smali'):
 # pass 1: class renames
 for p, (me, s) in list(files.items()):
     t = desc.sub(lambda x: 'L' + m.get(x.group(1), x.group(1)), s)
+    t = re.sub(r'(const-string(?:/jumbo)? \w+, )"(com\.(?:badlogic|invertbit)\.[\w.$]+)"',
+               lambda x: x.group(1) + '"' + m.get(x.group(2).replace('.', '/'), x.group(2).replace('.', '/')).replace('/', '.') + '"', t)
     if me in m and '$' in me:
         new_simple, old_simple = m[me].rsplit('$', 1)[1], me.rsplit('$', 1)[1]
         t = re.sub(r'(\.annotation system Ldalvik/annotation/InnerClass;.*?name = )"' + re.escape(old_simple) + '"',
