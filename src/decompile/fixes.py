@@ -38,6 +38,12 @@ fix('core/src/main/java/com/invertbit/games/c/a/Ca.java',
     'public final com.invertbit.games.c.a.a.Cd a(java.lang.String str) {',
     'public final com.invertbit.games.c.a.a.Cd a(java.lang.String str) throws java.lang.Exception {')
 
+# jadx dropped the loop exit of the mesh-building loop (bytecode: if-ge i, size -> next
+# outer iteration). Without it the loading screen spins forever on the GL thread.
+fix('core/src/main/java/com/invertbit/games/b/a/Ca.java',
+    '                    i3 = i4 + 1;\n                }\n            }\n        }\n        return this.b.b();',
+    '                    i3 = i4 + 1;\n                } else {\n                    break;\n                }\n            }\n        }\n        return this.b.b();')
+
 def main():
     bad = 0
     for path, old, new, count in FIXES:

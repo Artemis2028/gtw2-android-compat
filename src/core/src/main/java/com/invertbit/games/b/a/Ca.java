@@ -84,6 +84,8 @@ public class Ca {
                         }
                     }
                     i3 = i4 + 1;
+                } else {
+                    break;
                 }
             }
         }
