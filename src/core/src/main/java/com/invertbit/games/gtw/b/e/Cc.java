@@ -68,7 +68,7 @@ public final class Cc {
             java.util.HashMap map4 = new java.util.HashMap();
             java.util.ArrayList arrayList7 = new java.util.ArrayList();
             for (com.invertbit.games.gtw.b.Cf.Ib ib4 : com.invertbit.games.gtw.b.Cf.Ib.values()) {
-                if (!b(ib4) && ib4 != com.invertbit.games.gtw.nations.Nations.home(added)) {
+                if (!b(ib4) && !com.invertbit.games.gtw.nations.Nations.isHome(added, ib4.name())) {
                     arrayList7.add(ib4);
                 }
             }
@@ -110,6 +110,8 @@ public final class Cc {
                 return new com.invertbit.games.gtw.b.Cf.Ia(0, 27, 0);
             case europe:
                 return new com.invertbit.games.gtw.b.Cf.Ia(30, 25, 5);
+            case easteurope:
+                return new com.invertbit.games.gtw.b.Cf.Ia(25, 22, 5);
             case brazil:
                 return new com.invertbit.games.gtw.b.Cf.Ia(20, 24, 5);
             case chile:

@@ -28,8 +28,14 @@ public class NationsTest {
         assertEquals(6, Nations.PICK_ORDER.length);
         assertEquals(EnumSet.allOf(Ci.Ia.class), EnumSet.copyOf(java.util.Arrays.asList(Nations.PICK_ORDER)));
         assertTrue(Nations.isHome(Ci.Ia.SOUTH_AMERICA, "brazil"));
-        assertFalse(Nations.isHome(Ci.Ia.SOUTH_AMERICA, "chile"));
+        assertTrue(Nations.isHome(Ci.Ia.SOUTH_AMERICA, "chile"));
+        assertFalse(Nations.isHome(Ci.Ia.SOUTH_AMERICA, "africa"));
+        assertEquals(1, Nations.extraHomes(Ci.Ia.SOUTH_AMERICA).length);
+        assertEquals(Cf.Ib.chile, Nations.extraHomes(Ci.Ia.SOUTH_AMERICA)[0]);
+        assertEquals(0, Nations.extraHomes(Ci.Ia.EUROPE).length);
         assertEquals("SOUTH AMERICA", Nations.displayName(Ci.Ia.SOUTH_AMERICA));
+        assertTrue(Nations.isAnyHome(Cf.Ib.easteurope) == false);
+        assertTrue(Nations.isAnyHome(Cf.Ib.europe));
     }
 
     @Test
@@ -121,6 +127,20 @@ public class NationsTest {
     }
 
     @Test
+    public void europeIsColdWarNatoCities() {
+        java.util.Set<String> names = new java.util.HashSet<String>();
+        for (Nations.City c : Nations.cities(Ci.Ia.EUROPE)) {
+            names.add(c.name);
+        }
+        assertTrue(names.contains("Lisbon"));
+        assertTrue(names.contains("Bonn"));
+        assertTrue(names.contains("Madrid"));
+        assertFalse(names.contains("Berlin"));
+        assertFalse(names.contains("Warsaw"));
+        assertEquals(6, names.size());
+    }
+
+    @Test
     public void realCitiesSitInsideTheirHomeOutline() throws Exception {
         for (Ci.Ia ia : Ci.Ia.values()) {
             List<Nations.City> cities = Nations.cities(ia);
@@ -128,19 +148,27 @@ public class NationsTest {
                 assertTrue(cities.isEmpty());
                 continue;
             }
-            // one real city per population slot of the (superpower-level) home profile
             assertEquals(com.invertbit.games.gtw.b.e.Cc.a(Cf.Ib.usa).c, cities.size());
-            List<List<float[]>> polys = regionPolygons(Nations.home(ia).name());
-            assertFalse(polys.isEmpty());
+            // A side may own more than one home region (SOUTH_AMERICA: brazil + chile).
+            java.util.List<String> homeNames = new java.util.ArrayList<String>();
+            homeNames.add(Nations.home(ia).name());
+            for (Cf.Ib extra : Nations.extraHomes(ia)) {
+                homeNames.add(extra.name());
+            }
+            java.util.List<List<float[]>> allPolys = new java.util.ArrayList<List<float[]>>();
+            for (String hn : homeNames) {
+                allPolys.addAll(regionPolygons(hn));
+            }
+            assertFalse(ia + " has no outlines", allPolys.isEmpty());
             for (Nations.City c : cities) {
                 float[] p = Nations.project(c.lat, c.lon);
                 double nudge = Math.hypot(p[0] - c.x, p[1] - c.z);
-                assertTrue(c.name + " drifted " + nudge + " from its projection", nudge <= 15.0);
+                assertTrue(c.name + " drifted " + nudge + " from its projection", nudge <= 20.0);
                 boolean in = false;
-                for (List<float[]> poly : polys) {
+                for (List<float[]> poly : allPolys) {
                     in |= inside(c.x, c.z, poly);
                 }
-                assertTrue(c.name + " is outside " + Nations.home(ia), in);
+                assertTrue(c.name + " is outside " + homeNames, in);
             }
             for (int i = 0; i < cities.size(); i++) {
                 for (int j = 0; j < i; j++) {

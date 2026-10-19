@@ -163,9 +163,9 @@ the region's rects, and the AI (`a/Ca`, `b/e/Ca`) is side-agnostic.
 
 | Side | Home region (as drawn on the map) | Profile | Real cities |
 |---|---|---|---|
-| EUROPE | `europe`: Iberia to Poland/Balkans/Turkey, Scandinavia, British Isles | 30/26/6 | London, Paris, Berlin, Madrid, Rome, Warsaw |
+| EUROPE | `europe`: Cold War European NATO (UK, Iceland, Norway, Denmark, Benelux, West Germany, France, Italy, Portugal, Spain, Greece, Turkey). Non-NATO Europe is `easteurope`. | 30/26/6 | London, Paris, Madrid, Lisbon, Rome, Bonn |
 | AFRICA | `africa`: central and southern Africa below ~5°N, plus Madagascar | 30/26/6 | Kinshasa, Lubumbashi, Nairobi, Dar es Salaam, Johannesburg, Cape Town |
-| SOUTH AMERICA | `brazil`: the outline is Brazil's territory | 30/26/6 | São Paulo, Brasília, Salvador, Manaus, Recife, Porto Alegre |
+| SOUTH AMERICA | `brazil` + `chile` (whole continent; chile now has an outline for non-Brazil SA) | 30/26/6 on brazil (+ chile's ordinary stats) | São Paulo, Buenos Aires, Santiago, Lima, Bogotá, Caracas |
 
 * **Arsenal.** When a new side owns its own home region it gets the superpower profile (30, 26, 6),
   the same as USA/Russia/China. As somebody else's ally the region keeps its original, smaller

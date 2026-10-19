@@ -19,11 +19,15 @@ import java.util.List;
  * bloc/region nations built on regions that already exist in {@code world.svg} with real map
  * outlines and unit-placement grids:
  * <ul>
- *   <li>EUROPE        -> region {@code europe} (Iberia to Poland/Balkans/Turkey, Scandinavia, British Isles)</li>
- *   <li>AFRICA        -> region {@code africa} (central and southern Africa below ~5N, plus Madagascar)</li>
- *   <li>SOUTH_AMERICA -> region {@code brazil} (the outline is Brazil's territory)</li>
+ *   <li>EUROPE        -> region {@code europe}: Cold War European NATO
+ *       (UK, Iceland, Norway, Denmark, Benelux, West Germany, France, Italy,
+ *       Portugal, Spain, Greece, Turkey). Not Sweden/Finland/Austria/Switzerland/
+ *       Ireland/East Germany/Poland/Warsaw Pact — those are {@code easteurope}.</li>
+ *   <li>AFRICA        -> region {@code africa} (central and southern Africa + Madagascar)</li>
+ *   <li>SOUTH_AMERICA -> regions {@code brazil} + {@code chile} (whole continent:
+ *       Brazil's outline plus the rest of South America as chile)</li>
  * </ul>
- * The neighbouring regions ({@code sahara}, {@code egipt}, {@code chile}, ...) stay as
+ * Neighbouring regions ({@code sahara}, {@code egipt}, {@code easteurope}, ...) stay as
  * alliable countries, exactly like Canada/Mexico are for the USA.
  */
 public final class Nations {
@@ -64,13 +68,28 @@ public final class Nations {
 
     /** Is {@code region} (a {@link Cf#e} region name) the home region of {@code ia}? */
     public static boolean isHome(Ci.Ia ia, String region) {
-        return ia != null && region != null && home(ia).name().equalsIgnoreCase(region);
+        if (ia == null || region == null) {
+            return false;
+        }
+        if (home(ia).name().equalsIgnoreCase(region)) {
+            return true;
+        }
+        // SOUTH_AMERICA is a whole-continent side: brazil + chile.
+        return ia == Ci.Ia.SOUTH_AMERICA && "chile".equalsIgnoreCase(region);
+    }
+
+    /** Extra starting regions beyond {@link #home} (SOUTH_AMERICA also owns chile). */
+    public static Cf.Ib[] extraHomes(Ci.Ia ia) {
+        if (ia == Ci.Ia.SOUTH_AMERICA) {
+            return new Cf.Ib[]{Cf.Ib.chile};
+        }
+        return new Cf.Ib[0];
     }
 
     /** Is {@code region} the home region of any playable side? */
     public static boolean isAnyHome(Cf.Ib region) {
         for (Ci.Ia ia : Ci.Ia.values()) {
-            if (home(ia) == region) {
+            if (isHome(ia, region.name())) {
                 return true;
             }
         }
@@ -95,7 +114,9 @@ public final class Nations {
 
     /** {@link #stats(Cf)} for a region name and its owner in this game (may be null). */
     public static Cf.Ia stats(String region, Ci.Ia owner) {
-        if (owner != null && !isOriginal(owner) && isHome(owner, region)) {
+        // Only the primary home region gets the superpower (30/26/6) profile. Extra homes
+        // (chile for SOUTH_AMERICA) keep their ordinary region stats so the total stays in line.
+        if (owner != null && !isOriginal(owner) && home(owner).name().equalsIgnoreCase(region)) {
             return com.invertbit.games.gtw.b.e.Cc.a(Cf.Ib.usa);
         }
         return com.invertbit.games.gtw.b.e.Cc.a(Cf.Ib.valueOf(region));
@@ -248,12 +269,13 @@ public final class Nations {
     }
 
     private static final City[] EUROPE_CITIES = {
+            // Cold War European NATO capitals / major cities (Berlin/Warsaw dropped).
             new City("London", 51.507, -0.128, 1439, 405),
             new City("Paris", 48.857, 2.352, 1461, 433),
-            new City("Berlin", 52.520, 13.405, 1549, 395),
             new City("Madrid", 40.417, -3.704, 1411, 525),
+            new City("Lisbon", 38.722, -9.139, 1367, 544),
             new City("Rome", 41.903, 12.496, 1542, 507),
-            new City("Warsaw", 52.230, 21.012, 1610, 397),
+            new City("Bonn", 50.737, 7.098, 1498, 413),
     };
 
     private static final City[] AFRICA_CITIES = {
@@ -266,12 +288,14 @@ public final class Nations {
     };
 
     private static final City[] SOUTH_AMERICA_CITIES = {
+            // Whole-continent set (brazil + chile). Map x/z from the global lon/lat fit of
+            // world.svg; each point lies inside brazil or the new chile outline.
             new City("Sao Paulo", -23.551, -46.633, 1064, 1219),
-            new City("Brasilia", -15.794, -47.882, 1054, 1135),
-            new City("Salvador", -12.971, -38.501, 1125, 1104),
-            new City("Manaus", -3.119, -60.022, 956, 998),
-            new City("Recife", -8.048, -34.877, 1158, 1051),
-            new City("Porto Alegre", -30.035, -51.218, 1027, 1290),
+            new City("Buenos Aires", -34.603, -58.382, 969, 1339),
+            new City("Santiago", -33.449, -70.669, 870, 1327),
+            new City("Lima", -12.046, -77.043, 819, 1094),
+            new City("Bogota", 4.711, -74.072, 843, 913),
+            new City("Caracas", 10.480, -66.903, 901, 850),
     };
 
     /** Real cities of a side's home region; empty for the original three (they keep random placement). */
@@ -298,6 +322,10 @@ public final class Nations {
     /** Real cities to place for {@code cf} in this game: only when it is a new side's own home. */
     public static List<City> homeCities(Cf cf) {
         if (cf.c == null || isOriginal(cf.c) || !isHome(cf.c, cf.e)) {
+            return Collections.emptyList();
+        }
+        // Only the primary home region places the named cities (avoids duplicating them on chile).
+        if (!home(cf.c).name().equalsIgnoreCase(cf.e)) {
             return Collections.emptyList();
         }
         return cities(cf.c);

@@ -50,6 +50,12 @@ public class Cg {
         cf.c = ia;
         cf.e = strName;
         ca.c(cf);
+        for (com.invertbit.games.gtw.b.Cf.Ib extra : com.invertbit.games.gtw.nations.Nations.extraHomes(ia)) {
+            com.invertbit.games.gtw.b.Cf more = new com.invertbit.games.gtw.b.Cf();
+            more.c = ia;
+            more.e = extra.name();
+            ca.c(more);
+        }
         a(ca);
         return ca;
     }

@@ -9,6 +9,8 @@ package com.invertbit.games.gtw.android;
  *   a(listener, config) = initializeForView
  */
 public class AndroidLauncher extends com.badlogic.gdx.backends.android.Ca {
+    private com.invertbit.games.gtw.Ca game;
+
     @Override
     protected void onCreate(android.os.Bundle bundle) {
         super.onCreate(bundle);
@@ -18,6 +20,20 @@ public class AndroidLauncher extends com.badlogic.gdx.backends.android.Ca {
         com.badlogic.gdx.backends.android.Ce config = new com.badlogic.gdx.backends.android.Ce();
         config.h = false;
         config.i = false;
-        setContentView(a(new com.invertbit.games.gtw.Ca(new Platform(this)), config));
+        this.game = new com.invertbit.games.gtw.Ca(new Platform(this));
+        setContentView(a(this.game, config));
+    }
+
+    /** Freeze an in-progress battle when the activity goes to the background. */
+    @Override
+    protected void onPause() {
+        try {
+            if (this.game != null && this.game.b != null && this.game.b.b != null
+                    && (this.game.b.b.c instanceof com.invertbit.games.gtw.c.Caj)) {
+                ((com.invertbit.games.gtw.c.Caj) this.game.b.b.c).pauseBattle();
+            }
+        } catch (java.lang.Throwable ignored) {
+        }
+        super.onPause();
     }
 }
