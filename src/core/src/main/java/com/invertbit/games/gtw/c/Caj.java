@@ -59,19 +59,37 @@ public final class Caj extends com.invertbit.games.gtw.c.Ca implements com.inver
         this.l.a(this.m);
     }
 
+    /** Builds the battle HUD: a Pause button (always) and the Resume / Quit overlay (shown while paused). */
     private void e() {
         this.t.d();
         com.badlogic.gdx.f.a.a.Ce ce = new com.badlogic.gdx.f.a.a.Ce();
         ce.J = true;
-        com.invertbit.games.gtw.c.a.Cc cc = new com.invertbit.games.gtw.c.a.Cc("Continue game", com.invertbit.games.gtw.b.e.Cg.s73, com.invertbit.games.gtw.b.e.Cg.s30.h, new com.badlogic.gdx.graphics.Cb(0.0f, 0.13f, 0.15f, 1.0f));
-        cc.a(new com.invertbit.games.gtw.c.Cak(this, cc));
-        ce.c(cc).m().h().k();
+        // Pause control — top-right, always visible so players can find it without the Back key.
+        com.invertbit.games.gtw.c.a.Cc pause = new com.invertbit.games.gtw.c.a.Cc(160, 100, "Pause",
+                com.invertbit.games.gtw.b.e.Cg.s73, com.invertbit.games.gtw.b.e.Cg.s30.h);
+        pause.a(new com.badlogic.gdx.f.a.Cg() {
+            @Override public final boolean a() {
+                com.invertbit.games.gtw.c.Caj.this.pauseBattle();
+                return true;
+            }
+        });
+        ce.c(pause).m().l().i().e(20.0f).g(20.0f);
         ce.i();
-        com.invertbit.games.gtw.c.a.Cc cc2 = new com.invertbit.games.gtw.c.a.Cc("Exit", com.invertbit.games.gtw.b.e.Cg.s73, com.invertbit.games.gtw.b.e.Cg.s30.h, new com.badlogic.gdx.graphics.Cb(0.0f, 0.13f, 0.15f, 1.0f));
-        cc2.a(new com.invertbit.games.gtw.c.Cal(this, cc));
-        ce.c(cc2).m().h().i();
+        // Resume / Quit — only receive clicks while paused (Cak/Cal already check this.i).
+        com.invertbit.games.gtw.c.a.Cc resume = new com.invertbit.games.gtw.c.a.Cc("Resume", com.invertbit.games.gtw.b.e.Cg.s73, com.invertbit.games.gtw.b.e.Cg.s30.h, new com.badlogic.gdx.graphics.Cb(0.0f, 0.13f, 0.15f, 1.0f));
+        resume.a(new com.invertbit.games.gtw.c.Cak(this, resume));
+        ce.c(resume).m().h().k();
+        ce.i();
+        com.invertbit.games.gtw.c.a.Cc quit = new com.invertbit.games.gtw.c.a.Cc("Quit to menu", com.invertbit.games.gtw.b.e.Cg.s73, com.invertbit.games.gtw.b.e.Cg.s30.h, new com.badlogic.gdx.graphics.Cb(0.0f, 0.13f, 0.15f, 1.0f));
+        quit.a(new com.invertbit.games.gtw.c.Cal(this, resume));
+        ce.c(quit).m().h().i();
         this.t.a(ce);
         this.p.a(this.t);
+    }
+
+    /** Freeze the battle clock, AI and missiles (Back key, Pause button, or app background). */
+    public final void pauseBattle() {
+        this.i = true;
     }
 
     @Override // com.invertbit.games.gtw.c.Ca
@@ -143,10 +161,9 @@ public final class Caj extends com.invertbit.games.gtw.c.Ca implements com.inver
         f();
         a(false);
         f();
-        if (this.i) {
-            this.t.c();
-            this.t.a();
-        }
+        // Stage is always drawn so the Pause button stays reachable; Resume/Quit only act when paused.
+        this.t.c();
+        this.t.a();
         if (((com.badlogic.gdx.graphics.Cl) this.f).n <= 0.5f) {
             this.o.a();
             this.l.a(this.o, this.f);

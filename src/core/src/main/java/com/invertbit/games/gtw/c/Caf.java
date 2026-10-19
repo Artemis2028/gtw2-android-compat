@@ -30,7 +30,7 @@ public final class Caf extends com.invertbit.games.gtw.c.Cb {
             ce.i();
             for (com.invertbit.games.gtw.a.Ci ci : this.p.b) {
                 ce.c(new com.badlogic.gdx.f.a.a.Cc("", ia)).a(300.0f).h().g();
-                ce.c(new com.badlogic.gdx.f.a.a.Cc(ci.e.name(), ia)).m().j().f(30.0f);
+                ce.c(new com.badlogic.gdx.f.a.a.Cc(com.invertbit.games.gtw.nations.Nations.displayName(ci.e), ia)).m().j().f(30.0f);
                 com.badlogic.gdx.f.a.a.Cc cc = new com.badlogic.gdx.f.a.a.Cc("", ia2);
                 if (ci.g()) {
                     cc.a("Defated");

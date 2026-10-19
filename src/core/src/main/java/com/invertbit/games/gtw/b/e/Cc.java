@@ -64,6 +64,22 @@ public final class Cc {
         arrayList6.add(com.invertbit.games.gtw.b.Cf.Ib.russia);
         map3.put(9, arrayList6);
         this.b.put(ia3, map3);
+        for (com.invertbit.games.gtw.a.Ci.Ia added : new com.invertbit.games.gtw.a.Ci.Ia[]{com.invertbit.games.gtw.a.Ci.Ia.EUROPE, com.invertbit.games.gtw.a.Ci.Ia.AFRICA, com.invertbit.games.gtw.a.Ci.Ia.SOUTH_AMERICA}) {
+            java.util.HashMap map4 = new java.util.HashMap();
+            java.util.ArrayList arrayList7 = new java.util.ArrayList();
+            for (com.invertbit.games.gtw.b.Cf.Ib ib4 : com.invertbit.games.gtw.b.Cf.Ib.values()) {
+                if (!b(ib4) && !com.invertbit.games.gtw.nations.Nations.isHome(added, ib4.name())) {
+                    arrayList7.add(ib4);
+                }
+            }
+            map4.put(0, arrayList7);
+            java.util.ArrayList arrayList8 = new java.util.ArrayList();
+            arrayList8.add(com.invertbit.games.gtw.b.Cf.Ib.usa);
+            arrayList8.add(com.invertbit.games.gtw.b.Cf.Ib.russia);
+            arrayList8.add(com.invertbit.games.gtw.b.Cf.Ib.china);
+            map4.put(9, arrayList8);
+            this.b.put(added, map4);
+        }
     }
 
     public final java.util.List<com.invertbit.games.gtw.b.Cf.Ib> a(com.invertbit.games.gtw.a.Ci.Ia ia, int i) {
@@ -94,6 +110,8 @@ public final class Cc {
                 return new com.invertbit.games.gtw.b.Cf.Ia(0, 27, 0);
             case europe:
                 return new com.invertbit.games.gtw.b.Cf.Ia(30, 25, 5);
+            case easteurope:
+                return new com.invertbit.games.gtw.b.Cf.Ia(25, 22, 5);
             case brazil:
                 return new com.invertbit.games.gtw.b.Cf.Ia(20, 24, 5);
             case chile:

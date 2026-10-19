@@ -34,20 +34,7 @@ public class Cg {
     }
 
     public static com.invertbit.games.gtw.b.Cf.Ib a(com.invertbit.games.gtw.a.Ci.Ia ia) {
-        try {
-            return com.invertbit.games.gtw.b.Cf.Ib.valueOf(ia.name().toLowerCase());
-        } catch (java.lang.Exception e) {
-            switch (com.invertbit.games.gtw.a.Ch.a[ia.ordinal()]) {
-                case 1:
-                    return com.invertbit.games.gtw.b.Cf.Ib.usa;
-                case 2:
-                    return com.invertbit.games.gtw.b.Cf.Ib.russia;
-                case 3:
-                    return com.invertbit.games.gtw.b.Cf.Ib.china;
-                default:
-                    return null;
-            }
-        }
+        return com.invertbit.games.gtw.nations.Nations.home(ia);
     }
 
     public final com.invertbit.games.gtw.a.Ci a(com.invertbit.games.gtw.a.Ci.Ia ia, com.invertbit.games.gtw.b.Cf.Ib ib, boolean z) {
@@ -63,6 +50,12 @@ public class Cg {
         cf.c = ia;
         cf.e = strName;
         ca.c(cf);
+        for (com.invertbit.games.gtw.b.Cf.Ib extra : com.invertbit.games.gtw.nations.Nations.extraHomes(ia)) {
+            com.invertbit.games.gtw.b.Cf more = new com.invertbit.games.gtw.b.Cf();
+            more.c = ia;
+            more.e = extra.name();
+            ca.c(more);
+        }
         a(ca);
         return ca;
     }

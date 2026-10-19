@@ -17,6 +17,7 @@ public class Cf extends com.invertbit.games.gtw.b.Ca implements java.lang.Compar
         mexico,
         greenland,
         europe,
+        easteurope,
         brazil,
         chile,
         sahara,

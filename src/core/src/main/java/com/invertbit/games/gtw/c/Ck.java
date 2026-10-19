@@ -61,7 +61,7 @@ public final class Ck extends com.invertbit.games.gtw.c.Cb {
                 return;
             }
             com.invertbit.games.gtw.a.Ci next = it.next();
-            strValueOf = str == null ? java.lang.String.valueOf(next.e) : str + " vs " + next.e;
+            strValueOf = str == null ? com.invertbit.games.gtw.nations.Nations.displayName(next.e) : str + " vs " + com.invertbit.games.gtw.nations.Nations.displayName(next.e);
         }
     }
 
