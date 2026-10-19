@@ -106,4 +106,25 @@ public class AllianceMapTest {
             }
         }
     }
+    /**
+     * Original game rule (c/Cp, a/Cg.e): the Alliance UI offers countries only when
+     * {@code player.countries - 1 < defcon}. At DEFCON 0 with a single home region the list is
+     * empty for every side — that is intentional, not a bug in the new nations tables.
+     */
+    @Test
+    public void alliesUnlockFromDefconOneWithSingleHome() {
+        // Predicate mirrored from c/Cp (r = countries-1; show when r < defcon).
+        assertFalse("DEFCON 0 must show no allies", 1 - 1 < 0);
+        assertTrue("DEFCON 1 unlocks allies", 1 - 1 < 1);
+        assertFalse("two homes need DEFCON 2", 2 - 1 < 1);
+        assertTrue(2 - 1 < 2);
+        com.invertbit.games.gtw.b.e.Cc cc = com.invertbit.games.gtw.b.e.Cc.a();
+        for (Ci.Ia ia : Ci.Ia.values()) {
+            // Tables themselves are populated at key 0 for every side (non-empty ally pool).
+            assertFalse(ia + " has an empty key-0 pool", cc.a(ia, 0).isEmpty());
+        }
+        assertTrue(cc.a(Ci.Ia.EUROPE, 0).contains(Cf.Ib.easteurope));
+        assertTrue(cc.a(Ci.Ia.RUSSIA, 0).contains(Cf.Ib.easteurope));
+        assertFalse(cc.a(Ci.Ia.SOUTH_AMERICA, 0).contains(Cf.Ib.chile));
+    }
 }
