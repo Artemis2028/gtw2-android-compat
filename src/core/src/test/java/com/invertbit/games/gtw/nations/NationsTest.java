@@ -33,6 +33,9 @@ public class NationsTest {
         assertEquals(1, Nations.extraHomes(Ci.Ia.SOUTH_AMERICA).length);
         assertEquals(Cf.Ib.chile, Nations.extraHomes(Ci.Ia.SOUTH_AMERICA)[0]);
         assertEquals(0, Nations.extraHomes(Ci.Ia.EUROPE).length);
+        assertTrue(Nations.isHome(Ci.Ia.USA, "alaska"));
+        assertArrayEquals(new Cf.Ib[]{Cf.Ib.alaska}, Nations.extraHomes(Ci.Ia.USA));
+        assertFalse(Nations.isHome(Ci.Ia.RUSSIA, "alaska"));
         assertEquals("SOUTH AMERICA", Nations.displayName(Ci.Ia.SOUTH_AMERICA));
         assertTrue(Nations.isAnyHome(Cf.Ib.easteurope) == false);
         assertTrue(Nations.isAnyHome(Cf.Ib.europe));

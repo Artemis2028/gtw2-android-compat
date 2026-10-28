@@ -121,6 +121,11 @@ public final class Ca {
     }
 
     /** Test hook: use these regions instead of loading world.svg (no meshes are built). */
+    /** The map's region objects if world.svg is already loaded, else null (never loads it). */
+    public final java.util.Map<java.lang.String, com.invertbit.games.gtw.b.Cf> loadedRegions() {
+        return this.e == null ? null : this.f;
+    }
+
     public final void installRegions(java.util.Map<java.lang.String, com.invertbit.games.gtw.b.Cf> regions) {
         this.e = new java.util.ArrayList();
         this.f = regions;

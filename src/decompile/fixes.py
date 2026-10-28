@@ -131,6 +131,12 @@ fix('core/src/main/java/com/invertbit/games/gtw/c/Cp.java',
 # - gtw/c/Cw: jadx dropped the BOMBER case's `break` (bomber row showed the submarine). Now Cw.icon().
 # - c/a/Cb: the SVG path parser skips closepath "Z" (not a decompile bug; new world.svg outlines use it).
 # - gtw/c/Cl: the round setup on Start moved to gtw/b/e/RoundSetup so JVM tests can run it.
+# Stray map lines / alaska (same branch, nations/LaunchSetupTest + NationsTest):
+# - b/a/Ca: outline miters further than MAX_MITER line widths from the corner are skipped (joined()).
+#   A U-turn or an exactly straight corner in world.svg otherwise drew a long sliver.
+# - a/Cg: home regions are also marked on the map's own region objects, so the AI opponent cannot
+#   ally a region the other side starts with (extra homes chile, alaska).
+# - nations/Nations: USA also starts with alaska (extraHomes), like SOUTH_AMERICA with chile.
 
 def main():
     bad = 0

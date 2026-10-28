@@ -27,6 +27,7 @@ import java.util.List;
  *   <li>SOUTH_AMERICA -> regions {@code brazil} + {@code chile} (whole continent:
  *       Brazil's outline plus the rest of South America as chile)</li>
  * </ul>
+ * The original USA side also starts with {@code alaska} next to {@code usa}.
  * Neighbouring regions ({@code sahara}, {@code egipt}, {@code easteurope}, ...) stay as
  * alliable countries, exactly like Canada/Mexico are for the USA.
  */
@@ -74,14 +75,28 @@ public final class Nations {
         if (home(ia).name().equalsIgnoreCase(region)) {
             return true;
         }
-        // SOUTH_AMERICA is a whole-continent side: brazil + chile.
-        return ia == Ci.Ia.SOUTH_AMERICA && "chile".equalsIgnoreCase(region);
+        for (Cf.Ib extra : extraHomes(ia)) {
+            if (extra.name().equalsIgnoreCase(region)) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    /** Extra starting regions beyond {@link #home} (SOUTH_AMERICA also owns chile). */
+    /**
+     * Extra starting regions beyond {@link #home}: SOUTH_AMERICA also owns chile (whole
+     * continent), USA also owns alaska. They keep their ordinary region stats (see {@link #stats}).
+     *
+     * <p>Side effect of the original alliance rule (allies while own regions - 1 &lt; DEFCON,
+     * c/Cp and b/e/Ca): a side with two home regions gets one ally fewer at every DEFCON
+     * (none at DEFCON 1).
+     */
     public static Cf.Ib[] extraHomes(Ci.Ia ia) {
         if (ia == Ci.Ia.SOUTH_AMERICA) {
             return new Cf.Ib[]{Cf.Ib.chile};
+        }
+        if (ia == Ci.Ia.USA) {
+            return new Cf.Ib[]{Cf.Ib.alaska};
         }
         return new Cf.Ib[0];
     }
