@@ -12,13 +12,13 @@ final class Cal extends com.badlogic.gdx.f.a.Cg {
 
     @Override // com.badlogic.gdx.f.a.Cg
     public final boolean a() {
-        if (!this.b.i) {
+        if (!this.b.pause().isPaused()) {
             this.a.U = false;
             return false;
         }
         this.a.U = true;
-        this.b.d();
         this.b.a(4);
+        this.b.quitToMenu();
         return true;
     }
 }
