@@ -126,6 +126,12 @@ fix('core/src/main/java/com/invertbit/games/gtw/c/Cp.java',
 # so it is an original-game quirk, not a decompile error, and is deliberately left as is.
 # The obsolete enum switch maps a/Ch, b/d/Cc and c/a/Cg were deleted with the code that used them.
 
+# fix/launch-crash (feat/more-nations): changed by hand in core/ and covered by nations/LaunchSetupTest.
+# They are not FIXES entries because they restructure code (new methods and classes):
+# - gtw/c/Cw: jadx dropped the BOMBER case's `break` (bomber row showed the submarine). Now Cw.icon().
+# - c/a/Cb: the SVG path parser skips closepath "Z" (not a decompile bug; new world.svg outlines use it).
+# - gtw/c/Cl: the round setup on Start moved to gtw/b/e/RoundSetup so JVM tests can run it.
+
 def main():
     bad = 0
     for path, old, new, count in FIXES:

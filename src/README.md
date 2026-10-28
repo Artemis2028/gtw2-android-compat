@@ -79,6 +79,7 @@ Runtime decompile bugs (compiled fine, but behaved differently from the original
 - `b/a/Ca.a(String)`: jadx dropped the exit of a `while (true)` loop, so the loading screen hung (GL thread at 100%).
 - `gtw/c/a/Cc`, `gtw/c/a/Ce` (game buttons): dropped `int`->`float` casts made `Cell.width(float)` resolve to `Cell.colspan(int)`, so every button was laid out wrong.
 - `gtw/c/a/Cf` (battle HUD): a `switch` on nation was emptied (USA/RUSSIA/CHINA colours).
+- `gtw/c/Cw` (arsenal screen): jadx dropped the `break` after the BOMBER case's inner switch, so it fell through to SUBMARINE and every side's bomber screen showed a submarine. The icon choice is now `Cw.icon(row, side)`.
 - `gtw/b/d/Cb`: after the search loop the found render instance was overwritten with `null`, so destroyed units were never removed from the render list.
 
 The last three were found with `decompile/check_sigdiff.py` (invoked method signatures per class,

@@ -11,7 +11,21 @@ public final class Ce {
         return arrayList;
     }
 
-    public static void a(com.invertbit.games.gtw.a.Ci ci, com.invertbit.games.gtw.b.d.Cg cg, boolean z) {
+    /** Unit-placement grid of a map region (the battle map's b/d/Cg in game, world.svg in tests). */
+    public interface Grid {
+        java.util.List<com.badlogic.gdx.math.Cl> cells(com.invertbit.games.gtw.b.Cf.Ib region);
+    }
+
+    public static void a(com.invertbit.games.gtw.a.Ci ci, final com.invertbit.games.gtw.b.d.Cg cg, boolean z) {
+        a(ci, new Grid() {
+            @Override
+            public java.util.List<com.badlogic.gdx.math.Cl> cells(com.invertbit.games.gtw.b.Cf.Ib region) {
+                return cg.a(region);
+            }
+        }, z);
+    }
+
+    public static void a(com.invertbit.games.gtw.a.Ci ci, Grid cg, boolean z) {
         java.util.List<com.invertbit.games.gtw.b.Cf> listE = ci.e();
         int i = ci.i.a;
         int i2 = ci.i.f.a;
@@ -31,7 +45,7 @@ public final class Ce {
         java.util.Iterator it = arrayList.iterator();
         java.util.ArrayList arrayList2 = new java.util.ArrayList(listE.size());
         for (com.invertbit.games.gtw.b.Cf cf : listE) {
-            java.util.List<com.badlogic.gdx.math.Cl> listA = cg.a(com.invertbit.games.gtw.b.Cf.Ib.valueOf(cf.e));
+            java.util.List<com.badlogic.gdx.math.Cl> listA = cg.cells(com.invertbit.games.gtw.b.Cf.Ib.valueOf(cf.e));
             java.util.Collections.shuffle(listA);
             int iReal = a(cf, ci, (java.util.Iterator<java.lang.Integer>) it, listA);
             java.util.Iterator<com.badlogic.gdx.math.Cl> it2 = listA.iterator();

@@ -76,34 +76,54 @@ public final class Ca {
         this.f = new java.util.HashMap();
         try {
             com.invertbit.games.c.a.a.Cd cdA = new com.invertbit.games.c.a.Ca().a("world.svg");
-            java.util.Map<java.lang.String, com.invertbit.games.c.a.a.Cc> map = cdA.c.b;
             for (com.invertbit.games.c.a.a.Cb cb : cdA.c.a()) {
                 java.util.List<com.badlogic.gdx.graphics.a.Ce> list = this.e;
                 com.invertbit.games.b.a.Ca caA = new com.invertbit.games.b.a.Ca().a(cb);
                 caA.a = this.c;
                 caA.b = this.b;
                 list.add(caA.a(cb.a));
-                com.invertbit.games.gtw.b.Cf cf = new com.invertbit.games.gtw.b.Cf();
-                cf.e = cb.a;
-                cf.f = map.get(cf.e);
-                cf.g = 1;
-                if (!this.f.containsKey(cb.a)) {
-                    if (cdA.c.b().containsKey(cf.e)) {
-                        cf.i = com.invertbit.games.gtw.b.e.Ce.a(cdA.c.b().get(cf.e));
-                    }
-                    this.f.put(cb.a, cf);
-                }
             }
-            com.invertbit.games.gtw.b.Cf cf2 = new com.invertbit.games.gtw.b.Cf();
-            cf2.e = "submarine";
-            if (cdA.c.b().containsKey(cf2.e)) {
-                cf2.i = com.invertbit.games.gtw.b.e.Ce.a(cdA.c.b().get(cf2.e));
-            }
-            this.f.put("submarine", cf2);
+            this.f.putAll(regions(cdA));
         } catch (java.lang.Exception e) {
             e.printStackTrace();
         }
         return this.e;
+    }
+
+    /**
+     * Region name -> map region (outline label rect {@code f}, unit grid {@code i}) of a parsed
+     * world.svg, plus the "submarine" sea grid. The first path of each name wins (as in 1.5).
+     * Split out of {@link #d()} so it runs without GL.
+     */
+    public static java.util.Map<java.lang.String, com.invertbit.games.gtw.b.Cf> regions(com.invertbit.games.c.a.a.Cd cdA) {
+        java.util.Map<java.lang.String, com.invertbit.games.gtw.b.Cf> out = new java.util.HashMap();
+        java.util.Map<java.lang.String, com.invertbit.games.c.a.a.Cc> map = cdA.c.b;
+        for (com.invertbit.games.c.a.a.Cb cb : cdA.c.a()) {
+            if (out.containsKey(cb.a)) {
+                continue;
+            }
+            com.invertbit.games.gtw.b.Cf cf = new com.invertbit.games.gtw.b.Cf();
+            cf.e = cb.a;
+            cf.f = map.get(cf.e);
+            cf.g = 1;
+            if (cdA.c.b().containsKey(cf.e)) {
+                cf.i = com.invertbit.games.gtw.b.e.Ce.a(cdA.c.b().get(cf.e));
+            }
+            out.put(cb.a, cf);
+        }
+        com.invertbit.games.gtw.b.Cf cf2 = new com.invertbit.games.gtw.b.Cf();
+        cf2.e = "submarine";
+        if (cdA.c.b().containsKey(cf2.e)) {
+            cf2.i = com.invertbit.games.gtw.b.e.Ce.a(cdA.c.b().get(cf2.e));
+        }
+        out.put("submarine", cf2);
+        return out;
+    }
+
+    /** Test hook: use these regions instead of loading world.svg (no meshes are built). */
+    public final void installRegions(java.util.Map<java.lang.String, com.invertbit.games.gtw.b.Cf> regions) {
+        this.e = new java.util.ArrayList();
+        this.f = regions;
     }
 
     public final com.badlogic.gdx.graphics.g2d.Cg b(com.invertbit.games.gtw.b.a.Ca.Ia ia) {
