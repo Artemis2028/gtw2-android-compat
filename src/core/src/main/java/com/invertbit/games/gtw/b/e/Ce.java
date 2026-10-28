@@ -11,7 +11,21 @@ public final class Ce {
         return arrayList;
     }
 
-    public static void a(com.invertbit.games.gtw.a.Ci ci, com.invertbit.games.gtw.b.d.Cg cg, boolean z) {
+    /** Unit-placement grid of a map region (the battle map's b/d/Cg in game, world.svg in tests). */
+    public interface Grid {
+        java.util.List<com.badlogic.gdx.math.Cl> cells(com.invertbit.games.gtw.b.Cf.Ib region);
+    }
+
+    public static void a(com.invertbit.games.gtw.a.Ci ci, final com.invertbit.games.gtw.b.d.Cg cg, boolean z) {
+        a(ci, new Grid() {
+            @Override
+            public java.util.List<com.badlogic.gdx.math.Cl> cells(com.invertbit.games.gtw.b.Cf.Ib region) {
+                return cg.a(region);
+            }
+        }, z);
+    }
+
+    public static void a(com.invertbit.games.gtw.a.Ci ci, Grid cg, boolean z) {
         java.util.List<com.invertbit.games.gtw.b.Cf> listE = ci.e();
         int i = ci.i.a;
         int i2 = ci.i.f.a;
@@ -31,10 +45,11 @@ public final class Ce {
         java.util.Iterator it = arrayList.iterator();
         java.util.ArrayList arrayList2 = new java.util.ArrayList(listE.size());
         for (com.invertbit.games.gtw.b.Cf cf : listE) {
-            java.util.List<com.badlogic.gdx.math.Cl> listA = cg.a(com.invertbit.games.gtw.b.Cf.Ib.valueOf(cf.e));
+            java.util.List<com.badlogic.gdx.math.Cl> listA = cg.cells(com.invertbit.games.gtw.b.Cf.Ib.valueOf(cf.e));
             java.util.Collections.shuffle(listA);
+            int iReal = a(cf, ci, (java.util.Iterator<java.lang.Integer>) it, listA);
             java.util.Iterator<com.badlogic.gdx.math.Cl> it2 = listA.iterator();
-            a(cf, ci, (java.util.Iterator<java.lang.Integer>) it, it2);
+            a(cf, ci, (java.util.Iterator<java.lang.Integer>) it, it2, iReal);
             arrayList2.add(it2);
         }
         com.invertbit.games.gtw.a.Cb cb = ci.i;
@@ -114,8 +129,34 @@ public final class Ce {
         return arrayList;
     }
 
-    private static void a(com.invertbit.games.gtw.b.Cf cf, com.invertbit.games.gtw.a.Ci ci, java.util.Iterator<java.lang.Integer> it, java.util.Iterator<com.badlogic.gdx.math.Cl> it2) {
-        int i = com.invertbit.games.gtw.b.e.Cc.a(com.invertbit.games.gtw.b.Cf.Ib.valueOf(cf.e)).c;
+    /**
+     * Places a new side's real cities (Nations.homeCities) at their map positions and removes the
+     * grid slots they cover, so silos/bases don't stack on them. Returns how many were placed.
+     */
+    private static int a(com.invertbit.games.gtw.b.Cf cf, com.invertbit.games.gtw.a.Ci ci, java.util.Iterator<java.lang.Integer> it, java.util.List<com.badlogic.gdx.math.Cl> grid) {
+        int count = com.invertbit.games.gtw.nations.Nations.stats(cf).c;
+        int placed = 0;
+        for (com.invertbit.games.gtw.nations.Nations.City city : com.invertbit.games.gtw.nations.Nations.homeCities(cf)) {
+            if (placed >= count || !it.hasNext()) {
+                break;
+            }
+            ci.c(com.invertbit.games.gtw.b.b.Ca.a(new com.badlogic.gdx.math.Cl(city.x, 0.0f, city.z), ci.e, it.next().intValue()));
+            placed++;
+            java.util.Iterator<com.badlogic.gdx.math.Cl> g = grid.iterator();
+            while (g.hasNext()) {
+                com.badlogic.gdx.math.Cl p = g.next();
+                float dx = p.a - city.x;
+                float dz = p.c - city.z;
+                if ((dx * dx) + (dz * dz) < 1600.0f) {
+                    g.remove();
+                }
+            }
+        }
+        return placed;
+    }
+
+    private static void a(com.invertbit.games.gtw.b.Cf cf, com.invertbit.games.gtw.a.Ci ci, java.util.Iterator<java.lang.Integer> it, java.util.Iterator<com.badlogic.gdx.math.Cl> it2, int alreadyPlaced) {
+        int i = com.invertbit.games.gtw.nations.Nations.stats(cf).c - alreadyPlaced;
         for (int i2 = 0; i2 < i; i2++) {
             if (it2.hasNext()) {
                 ci.c(com.invertbit.games.gtw.b.b.Ca.a(it2.next(), ci.e, it.next().intValue()));

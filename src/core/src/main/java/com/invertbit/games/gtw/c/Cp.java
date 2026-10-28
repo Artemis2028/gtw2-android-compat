@@ -81,7 +81,7 @@ public final class Cp extends com.invertbit.games.gtw.c.Cb {
             java.util.Iterator<com.invertbit.games.gtw.b.Cf.Ib> it = this.p.a(this.q.a().e, this.q.c).iterator();
             while (it.hasNext()) {
                 com.invertbit.games.gtw.b.Cf cf = com.invertbit.games.gtw.b.a.Ca.a().b().get(it.next().name());
-                if ((this.r >= this.q.c || this.q.a().d.contains(cf) || this.q.b().d.contains(cf) || cf.e.equalsIgnoreCase(this.q.b().e.name())) ? false : true) {
+                if ((this.r >= this.q.c || this.q.a().d.contains(cf) || this.q.b().d.contains(cf) || com.invertbit.games.gtw.nations.Nations.isHome(this.q.b().e, cf.e)) ? false : true) {
                     com.invertbit.games.gtw.c.a.Ce ce2 = new com.invertbit.games.gtw.c.a.Ce(cf, com.invertbit.games.gtw.b.e.Cg.s37, com.invertbit.games.gtw.b.e.Cg.s37.h);
                     com.invertbit.games.c.a.a.Cc cc2 = cf.f;
                     float f = (cc2.a.a * c) / 2880.0f;
@@ -116,19 +116,22 @@ public final class Cp extends com.invertbit.games.gtw.c.Cb {
         this.o.a();
     }
 
+    // Alliance map render. jadx dropped the inner loop's exit (original smali: hasNext()==false
+    // -> next region), leaving `while (true) { if (it.hasNext()) ... }`, which spun forever on the
+    // render thread once the sides were exhausted: the Alliance screen froze (all sides). The owner
+    // lookup is a bounded helper (nations.AllianceMap) so this cannot loop again.
     private void a(boolean z) {
         for (com.badlogic.gdx.graphics.a.Cg cg : this.s) {
             com.invertbit.games.gtw.b.Cf cf = (com.invertbit.games.gtw.b.Cf) cg.g;
-            java.util.Iterator<com.invertbit.games.gtw.a.Ci> it = this.q.b.iterator();
-            while (true) {
-                if (it.hasNext()) {
-                    com.invertbit.games.gtw.a.Ci next = it.next();
-                    if (z && next.d.contains(cf)) {
-                        this.j.a(cg, com.invertbit.games.gtw.c.b.Ca.a(next.e, this.k));
-                        break;
-                    } else if (!z) {
-                        this.j.a(cg, this.k.a(com.invertbit.games.gtw.d.Ca.Ia.defaultBorder));
-                    }
+            if (z) {
+                com.invertbit.games.gtw.a.Ci owner = com.invertbit.games.gtw.nations.AllianceMap.owner(cf, this.q.b);
+                if (owner != null) {
+                    this.j.a(cg, com.invertbit.games.gtw.c.b.Ca.a(owner.e, this.k));
+                }
+            } else {
+                // the original draws the neutral border once per side
+                for (int n = 0; n < this.q.b.size(); n++) {
+                    this.j.a(cg, this.k.a(com.invertbit.games.gtw.d.Ca.Ia.defaultBorder));
                 }
             }
         }

@@ -12,12 +12,12 @@ final class Cak extends com.badlogic.gdx.f.a.Cg {
 
     @Override // com.badlogic.gdx.f.a.Cg
     public final boolean a() {
-        if (!this.b.i) {
+        if (!this.b.pause().isPaused()) {
             this.a.U = false;
             return false;
         }
         this.a.U = true;
-        this.b.i = false;
+        this.b.resumeBattle();
         return true;
     }
 }

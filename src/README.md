@@ -79,6 +79,7 @@ Runtime decompile bugs (compiled fine, but behaved differently from the original
 - `b/a/Ca.a(String)`: jadx dropped the exit of a `while (true)` loop, so the loading screen hung (GL thread at 100%).
 - `gtw/c/a/Cc`, `gtw/c/a/Ce` (game buttons): dropped `int`->`float` casts made `Cell.width(float)` resolve to `Cell.colspan(int)`, so every button was laid out wrong.
 - `gtw/c/a/Cf` (battle HUD): a `switch` on nation was emptied (USA/RUSSIA/CHINA colours).
+- `gtw/c/Cw` (arsenal screen): jadx dropped the `break` after the BOMBER case's inner switch, so it fell through to SUBMARINE and every side's bomber screen showed a submarine. The icon choice is now `Cw.icon(row, side)`.
 - `gtw/b/d/Cb`: after the search loop the found render instance was overwritten with `null`, so destroyed units were never removed from the render list.
 
 The last three were found with `decompile/check_sigdiff.py` (invoked method signatures per class,
@@ -145,6 +146,46 @@ so these changes would have to be re-applied after a re-import.
   - Choose the level on the New game slot screen; Settings cycles the default.
   - The level is stored in the save (`save.level`) and restored on Continue. Original saves use
     the Settings level, as they did before.
+
+### More playable sides: Europe, Africa, South America
+
+The original game has three sides (`a/Ci.Ia`: USA, RUSSIA, CHINA). Everything that differed per
+side was hardcoded in about ten switch statements and if-chains: border, unit and HUD colours, bomber
+model, home region, the alliance table and the pick-screen previews. All of these now go through
+`gtw/nations/Nations.java`, and the pick screens share `gtw/nations/NationPicker.java`.
+
+**How a side is modelled.** A side is one *home region* of the map (`b/Cf.Ib`; outline and
+unit-placement rects in `assets/world.svg`) plus an alliance table (`b/e/Cc`: which other regions
+it may ally with at which DEFCON). A region's profile is (silos, submarines, population/cities),
+e.g. USA/Russia/China (30, 26, 6). Cities, silos and subs are deployed on a 48-unit grid inside
+the region's rects, and the AI (`a/Ca`, `b/e/Ca`) is side-agnostic.
+
+**Added sides.** Each uses a region that already has a real outline in world.svg:
+
+| Side | Home region (as drawn on the map) | Profile | Real cities |
+|---|---|---|---|
+| EUROPE | `europe`: Cold War European NATO (UK, Iceland, Norway, Denmark, Benelux, West Germany, France, Italy, Portugal, Spain, Greece, Turkey). Non-NATO Europe is `easteurope`. | 30/26/6 | London, Paris, Madrid, Lisbon, Rome, Bonn |
+| AFRICA | `africa`: central and southern Africa below ~5°N, plus Madagascar | 30/26/6 | Kinshasa, Lubumbashi, Nairobi, Dar es Salaam, Johannesburg, Cape Town |
+| SOUTH AMERICA | `brazil` + `chile` (whole continent; chile now has an outline for non-Brazil SA) | 30/26/6 on brazil (+ chile's ordinary stats) | São Paulo, Buenos Aires, Santiago, Lima, Bogotá, Caracas |
+
+* **Arsenal.** When a new side owns its own home region it gets the superpower profile (30, 26, 6),
+  the same as USA/Russia/China. As somebody else's ally the region keeps its original, smaller
+  profile, so games between the original three are unchanged.
+* **Alliances.** New sides may ally with every non-superpower region except their own home from
+  DEFCON 0, and with USA, Russia and China from DEFCON 9 (the original sides' thresholds).
+  `sahara`, `egipt`, `chile`, etc. stay ordinary alliable countries, like Canada/Mexico for the USA.
+* **Cities are approximate.** The original sides place cities randomly on the grid. The new sides
+  place their six cities at real positions, projected with a least-squares fit of the map
+  (x = 1440.5 + 8.069·lon, z = 963.7 − 10.854·lat; typical error about 1°, worst around 2–3°).
+  Coastal cities were nudged up to 12 map units inland when the rough coastline put them in the
+  sea. `NationsTest` checks every city against the real outline in world.svg.
+* **Looks.** Colours are violet (Europe), yellow (Africa) and pink (South America). There are only
+  three bomber models, so new sides reuse one (Europe: US, Africa: Russian, South America: Chinese),
+  tinted in the side colour.
+* **Pick screens** show all six outlines in two rows of three, with two rows of buttons. The
+  opponent screen leaves the player's own slot empty.
+* **Not changed.** The tutorial (USA only) is unchanged. Saves store the side's `name()`
+  (e.g. `SOUTH_AMERICA`), so a save that uses a new side can't be opened by older builds.
 
 ## Next steps
 - Run it on a phone and compare behaviour with compat1.

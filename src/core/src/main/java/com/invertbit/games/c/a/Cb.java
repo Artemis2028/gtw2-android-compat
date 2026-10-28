@@ -91,6 +91,13 @@ public final class Cb extends org.xml.sax.helpers.DefaultHandler {
             int i = 0;
             while (i < length) {
                 java.lang.String str5 = strArrSplit[i];
+                // SVG closepath (Z/z). The original 1.5 parser only knew M/m/L/l and threw
+                // NumberFormatException on "Z", which aborted loading the whole world map. Outlines
+                // here repeat their first point, so closepath adds nothing: skip it.
+                if ("z".equalsIgnoreCase(str5)) {
+                    i++;
+                    continue;
+                }
                 if ("m".equalsIgnoreCase(str5) || "l".equalsIgnoreCase(str5)) {
                     z = true;
                 } else {
