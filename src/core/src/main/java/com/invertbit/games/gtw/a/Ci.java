@@ -92,6 +92,11 @@ public class Ci {
         return this.f >= this.a;
     }
 
+    /** Launch budget for this round ({@code a} in {@code [used/budget]}). */
+    public final int launchBudget() {
+        return this.a;
+    }
+
     public final java.util.List<com.invertbit.games.gtw.b.Cf> e() {
         java.util.ArrayList arrayList = new java.util.ArrayList();
         for (com.invertbit.games.gtw.b.Ca ca : this.d) {

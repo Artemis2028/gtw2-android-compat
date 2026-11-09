@@ -221,6 +221,19 @@ Prefs live in the existing `GTWGame` file under `v1_sound` (original boolean), `
 (int percent) and `v1_speed` (int 1/2/4). `GameSettings` holds the values and the cycle
 rules (JVM-tested); `Cp` loads them at first sound init and plays at `scaledVolume(base)`.
 
+### Post-match stats
+The end-of-round summary (`gtw/c/Caf`, shown when any side is defeated) now reads a
+`MatchStats` snapshot per side instead of only remaining-loss MT. Every figure comes
+from data the sim already stores:
+
+- **Launches** — `Ci.f` / `Ci.a` (used / budget), the same pair `Ci.toString` prints
+- **Casualties** — `Ci.j.f.b()` mln, the population-loss total the old "Population" row showed
+- **Cities** — how many `b.Cd` units on that side have the sim's destroyed flag (`Ca.d`)
+- **Silos / Submarines / Bombers** — `Ci.j.g/i/h.b()` MT, unchanged
+
+There is no intercept counter in the sim, so the screen does not invent one.
+`MatchStatsTest` builds a side, sets those fields, and checks the labels.
+
 ## Next steps
 - Run it on a phone and compare behaviour with compat1.
 - Give the game's own classes readable names (add to `classes.tiny` or use a jadx mapping).
@@ -234,4 +247,4 @@ rules (JVM-tested); `Cp` loads them at first sound init and plays at `scaledVolu
   3. Then ship matching 1.14.2 `libgdx.so` for every ABI (already 16 KB-aligned, including
      x86_64). Until that Java move lands, x86_64 `libgdx.so` has to stay on 1.9.4 (4 KB
      LOAD alignment) so the 1.7.0 AndroidGL20 JNI still resolves.
-- Post-match stats.
+- Play a match through to the summary screen on a phone (the new rows need a side to be defeated).

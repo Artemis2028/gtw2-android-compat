@@ -29,37 +29,23 @@ public final class Caf extends com.invertbit.games.gtw.c.Cb {
             ce.c(new com.badlogic.gdx.f.a.a.Cc("Losses:", ia)).a(4).m().h().g();
             ce.i();
             for (com.invertbit.games.gtw.a.Ci ci : this.p.b) {
+                com.invertbit.games.gtw.stats.MatchStats stats = com.invertbit.games.gtw.stats.MatchStats.of(ci);
                 ce.c(new com.badlogic.gdx.f.a.a.Cc("", ia)).a(300.0f).h().g();
-                ce.c(new com.badlogic.gdx.f.a.a.Cc(com.invertbit.games.gtw.nations.Nations.displayName(ci.e), ia)).m().j().f(30.0f);
+                ce.c(new com.badlogic.gdx.f.a.a.Cc(stats.name, ia)).m().j().f(30.0f);
                 com.badlogic.gdx.f.a.a.Cc cc = new com.badlogic.gdx.f.a.a.Cc("", ia2);
-                if (ci.g()) {
+                if (stats.defeated) {
                     cc.a("Defated");
                 }
                 ce.c(cc).m().l().g(15.0f);
                 ce.c(new com.badlogic.gdx.f.a.a.Cc("", ia)).a(300.0f).h().g();
                 ce.i();
-                com.invertbit.games.gtw.a.Cb cb2 = ci.j;
                 com.badlogic.gdx.f.a.a.Cc.Ia ia3 = new com.badlogic.gdx.f.a.a.Cc.Ia(com.invertbit.games.gtw.b.d.Cj.a(com.invertbit.games.gtw.b.e.Cg.s36), com.invertbit.games.gtw.b.e.Cg.s37.h);
-                ce.c(new com.badlogic.gdx.f.a.a.Cc("", ia3)).a(300.0f).h().g();
-                ce.c(new com.badlogic.gdx.f.a.a.Cc("Population", ia3)).m().j().f(60.0f);
-                ce.c(new com.badlogic.gdx.f.a.a.Cc(java.lang.String.valueOf(cb2.f.b() + " mln"), ia3)).m().l().g(15.0f);
-                ce.c(new com.badlogic.gdx.f.a.a.Cc("", ia3)).a(300.0f).h().g();
-                ce.i();
-                ce.c(new com.badlogic.gdx.f.a.a.Cc("", ia3)).a(300.0f).h().g();
-                ce.c(new com.badlogic.gdx.f.a.a.Cc("Silos", ia3)).m().j().f(60.0f);
-                ce.c(new com.badlogic.gdx.f.a.a.Cc(java.lang.String.valueOf(cb2.g.b() + " MT"), ia3)).m().l().g(15.0f);
-                ce.c(new com.badlogic.gdx.f.a.a.Cc("", ia3)).a(300.0f).h().g();
-                ce.i();
-                ce.c(new com.badlogic.gdx.f.a.a.Cc("", ia3)).a(300.0f).h().g();
-                ce.c(new com.badlogic.gdx.f.a.a.Cc("Submarines", ia3)).m().j().f(60.0f);
-                ce.c(new com.badlogic.gdx.f.a.a.Cc(java.lang.String.valueOf(cb2.i.b() + " MT"), ia3)).m().l().g(15.0f);
-                ce.c(new com.badlogic.gdx.f.a.a.Cc("", ia3)).a(300.0f).h().g();
-                ce.i();
-                ce.c(new com.badlogic.gdx.f.a.a.Cc("", ia3)).a(300.0f).h().g();
-                ce.c(new com.badlogic.gdx.f.a.a.Cc("Bombers", ia3)).m().j().f(60.0f);
-                ce.c(new com.badlogic.gdx.f.a.a.Cc(java.lang.String.valueOf(cb2.h.b() + " MT"), ia3)).m().l().g(15.0f);
-                ce.c(new com.badlogic.gdx.f.a.a.Cc("", ia3)).a(300.0f).h().g();
-                ce.i();
+                a(ce, ia3, "Launches", stats.launchesLabel());
+                a(ce, ia3, "Casualties", stats.casualtiesLabel());
+                a(ce, ia3, "Cities", stats.citiesLabel());
+                a(ce, ia3, "Silos", stats.silosLabel());
+                a(ce, ia3, "Submarines", stats.subsLabel());
+                a(ce, ia3, "Bombers", stats.bombersLabel());
             }
             if (this.p.a().g()) {
                 com.invertbit.games.gtw.c.a.Cc cc2 = new com.invertbit.games.gtw.c.a.Cc(100, 100, "<", com.invertbit.games.gtw.b.e.Cg.s73, com.invertbit.games.gtw.b.e.Cg.s37.h);
@@ -79,6 +65,14 @@ public final class Caf extends com.invertbit.games.gtw.c.Cb {
     @Override // com.invertbit.games.gtw.c.Cb, com.invertbit.games.gtw.c.Ca
     public final void b(float f) {
         super.b(f);
+    }
+
+    private static void a(com.badlogic.gdx.f.a.a.Ce table, com.badlogic.gdx.f.a.a.Cc.Ia style, java.lang.String label, java.lang.String value) {
+        table.c(new com.badlogic.gdx.f.a.a.Cc("", style)).a(300.0f).h().g();
+        table.c(new com.badlogic.gdx.f.a.a.Cc(label, style)).m().j().f(60.0f);
+        table.c(new com.badlogic.gdx.f.a.a.Cc(value, style)).m().l().g(15.0f);
+        table.c(new com.badlogic.gdx.f.a.a.Cc("", style)).a(300.0f).h().g();
+        table.i();
     }
 
     static void a(com.invertbit.games.gtw.c.Caf caf) {
