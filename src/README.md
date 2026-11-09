@@ -204,8 +204,22 @@ the region's rects, and the AI (`a/Ca`, `b/e/Ca`) is side-agnostic.
 ### Battle speed (1x / 2x / 4x)
 The running HUD has a toggle next to Pause that cycles 1x → 2x → 4x → 1x. `BattlePause.frame()`
 multiplies elapsed battle time (and AI turns) by that factor; while paused the multiplier is
-ignored and the sim stays frozen. A new battle restores the default speed (1x until Settings
-can change it). `BattlePauseTest` covers 1x/2x/4x, pause-at-4x, cycling, and start() reset.
+ignored and the sim stays frozen. A new battle restores the default speed from Settings
+(1x until changed). `BattlePauseTest` covers 1x/2x/4x, pause-at-4x, cycling, and start() reset.
+
+### Sound and settings
+The Settings screen (already home to Sound on/off and the default difficulty) now also has:
+
+- **Volume: 25% / 50% / 75% / 100%** — scales the original play loudness (button click 0.45,
+  impact 1.0). Sound off still mutes completely; the stored volume is kept for when sound
+  is turned back on.
+- **Speed: 1x / 2x / 4x** — the default battle-speed multiplier applied when a new match
+  starts (`BattlePause.setDefaultSpeed` then `start()`). The in-battle HUD toggle still
+  cycles the current match independently.
+
+Prefs live in the existing `GTWGame` file under `v1_sound` (original boolean), `v1_volume`
+(int percent) and `v1_speed` (int 1/2/4). `GameSettings` holds the values and the cycle
+rules (JVM-tested); `Cp` loads them at first sound init and plays at `scaledVolume(base)`.
 
 ## Next steps
 - Run it on a phone and compare behaviour with compat1.
@@ -220,5 +234,4 @@ can change it). `BattlePauseTest` covers 1x/2x/4x, pause-at-4x, cycling, and sta
   3. Then ship matching 1.14.2 `libgdx.so` for every ABI (already 16 KB-aligned, including
      x86_64). Until that Java move lands, x86_64 `libgdx.so` has to stay on 1.9.4 (4 KB
      LOAD alignment) so the 1.7.0 AndroidGL20 JNI still resolves.
-- Sound / settings.
 - Post-match stats.

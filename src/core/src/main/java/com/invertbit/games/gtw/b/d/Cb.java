@@ -182,11 +182,6 @@ public abstract class Cb implements com.invertbit.games.gtw.b.c.Ca {
             }
             this.a.remove(next);
         }
-        com.invertbit.games.gtw.b.d.Cp.Ia ia = com.invertbit.games.gtw.b.d.Cp.Ia.impact_ogg;
-        com.invertbit.games.gtw.b.d.Cp cp = this.e;
-        if (!cp.c || !cp.b.containsKey(ia)) {
-            return;
-        }
-        cp.b.get(ia).a(1.0f);
+        com.invertbit.games.gtw.b.d.Cp.playImpact();
     }
 }

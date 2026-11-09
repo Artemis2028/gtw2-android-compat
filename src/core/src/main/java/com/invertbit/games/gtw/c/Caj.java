@@ -213,6 +213,7 @@ public final class Caj extends com.invertbit.games.gtw.c.Ca implements com.inver
         this.r = java.lang.System.currentTimeMillis();
         e();
         // New battle: never inherit a pause from the last match or from the app's background trip.
+        pause().setDefaultSpeed(com.invertbit.games.gtw.settings.GameSettings.get().defaultSpeed());
         pause().start(this.r);
         this.i = false;
     }
