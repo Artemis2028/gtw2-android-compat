@@ -147,6 +147,13 @@ fix('core/src/main/java/com/invertbit/games/gtw/c/Cp.java',
 # by EglCompatTest. core/build.gradle filterGdxJar strips the original a.Cg from the libGDX jar.
 # Cb$Ib.createContext already passed {EGL_CONTEXT_CLIENT_VERSION=0x3098, 2, EGL_NONE} and
 # EGL_NO_CONTEXT; that attrib list is documented and tested in EglCompat.contextAttribList().
+#
+# Battle HUD resize (not a jadx rewrite): Caj.a(int,int) used to update only overlay stage t.
+# The running HUD stage u (Pause button) was never resized, so it stayed off-screen on
+# API 35+ phone AVDs. Both stages are resized through BattleHudLayout.stagesToResize;
+# button geometry (160x100, bottom-right, 20px pad, 1920x1080 world) lives in BattleHudLayout
+# and is covered by BattleHudLayoutTest.
+
 
 def main():
     bad = 0

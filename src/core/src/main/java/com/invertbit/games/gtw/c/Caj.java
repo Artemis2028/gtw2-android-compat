@@ -88,7 +88,10 @@ public final class Caj extends com.invertbit.games.gtw.c.Ca implements com.inver
         this.u.d();
         com.badlogic.gdx.f.a.a.Ce hud = new com.badlogic.gdx.f.a.a.Ce();
         hud.J = true;
-        com.invertbit.games.gtw.c.a.Cc pauseButton = new com.invertbit.games.gtw.c.a.Cc(160, 100, "Pause",
+        com.invertbit.games.gtw.c.a.Cc pauseButton = new com.invertbit.games.gtw.c.a.Cc(
+                com.invertbit.games.gtw.c.BattleHudLayout.PAUSE_WIDTH,
+                com.invertbit.games.gtw.c.BattleHudLayout.PAUSE_HEIGHT,
+                "Pause",
                 com.invertbit.games.gtw.b.e.Cg.s73, com.invertbit.games.gtw.b.e.Cg.s30.h);
         pauseButton.a(new com.badlogic.gdx.f.a.Cg() {
             @Override public final boolean a() {
@@ -96,7 +99,9 @@ public final class Caj extends com.invertbit.games.gtw.c.Ca implements com.inver
                 return true;
             }
         });
-        hud.c(pauseButton).m().l().i().e(20.0f).g(20.0f);
+        hud.c(pauseButton).m().l().i()
+                .e(com.invertbit.games.gtw.c.BattleHudLayout.PAD)
+                .g(com.invertbit.games.gtw.c.BattleHudLayout.PAD);
         addAiOffLabel(hud);
         this.u.a(hud);
 
@@ -268,7 +273,13 @@ public final class Caj extends com.invertbit.games.gtw.c.Ca implements com.inver
 
     @Override // com.badlogic.gdx.Co
     public final void a(int i, int i2) {
-        this.t.b.a(i, i2);
+        // Both stages: historically only the overlay (t) was resized, so the running HUD
+        // (u, Pause button) kept an un-updated viewport and was never drawn or hittable.
+        for (com.badlogic.gdx.f.a.Ci stage : com.invertbit.games.gtw.c.BattleHudLayout.stagesToResize(this.t, this.u)) {
+            if (stage != null && stage.b != null) {
+                stage.b.a(i, i2);
+            }
+        }
     }
 
     @Override // com.badlogic.gdx.Co
