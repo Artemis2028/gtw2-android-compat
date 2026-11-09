@@ -31,8 +31,14 @@ next to the original and the compat build.
 | `decompile/` | Scripts that regenerate all of the above from the APK. |
 
 Native libraries: 32-bit (`armeabi`, `armeabi-v7a`, `x86`) are copied from the original APK
-(libGDX 1.7.0); 64-bit (`arm64-v8a`, `x86_64`) come from Maven Central libGDX 1.9.4, same as
-the compat build.
+(libGDX 1.7.0, 4 KB ELF pages; 16 KB-page devices are 64-bit and will not load them).
+64-bit `libgdx.so` still comes from Maven libGDX **1.9.4** (JNI-compatible with the
+obfuscated 1.7.0 Java: it still exports `AndroidGL20_*` and the old `Matrix4` overloads).
+The arm64 1.9.4 `libgdx.so` already has 64 KB LOAD alignment (compatible with 16 KB pages);
+the x86_64 1.9.4 `libgdx.so` is still 4 KB. 64-bit `libgdx-freetype.so` comes from Maven
+libGDX **1.14.2** (16 KB LOAD alignment, JNI a superset of 1.9.4). Natives are packaged
+uncompressed (`extractNativeLibs=false`, `useLegacyPackaging false`) so AGP 8.5+ can
+`zipalign -P 16` them.
 
 ## Names
 The original was obfuscated by ProGuard, so names are single letters. The game's classes
@@ -49,13 +55,18 @@ Handy anchors:
 - `com.badlogic.gdx.math.Ck` = `Vector2`, `Cl` = `Vector3`, `Cj` = `Vector`; `com.badlogic.gdx.graphics.Cm` = `Pixmap`
 - `com.badlogic.gdx.f.a` = scene2d, `com.badlogic.gdx.f.a.a` = scene2d.ui (`Ce` = `Table`)
 
-## Why libGDX is not a Maven dependency (yet)
+## Why libGDX is not a Maven Java dependency (yet)
 The game calls libGDX through ProGuard-obfuscated names (`com.badlogic.gdx.utils.a` is `Array`,
 and so on), and ProGuard also merged and shrank libGDX methods. Swapping in stock
-`com.badlogicgames.gdx:gdx:1.9.x` means mapping every libGDX class, method and field the game uses
-back to its real name and rewriting those call sites. That work is not done yet. Until then, the
-game compiles against the exact libGDX bytecode it shipped with, which keeps its behaviour
-identical. See "Next steps".
+`com.badlogicgames.gdx:gdx:1.14.2` (or 1.13.x) means mapping every libGDX class, method and field
+the game uses back to its real name and rewriting those call sites. That work is not done yet.
+Until then, the game compiles against the exact libGDX 1.7.0 bytecode it shipped with.
+
+Natives are a separate constraint: libGDX 1.13.0+ `.so` files are 16 KB page-aligned, but they
+dropped the `AndroidGL20_*` JNI and the old `Matrix4` overload symbols that the 1.7.0 Java
+backend still calls. Using those newer `libgdx.so` files without first moving the Java side
+onto the real API would `UnsatisfiedLinkError` on the first GL call. FreeType's JNI did not
+lose symbols, so `libgdx-freetype.so` is already on 1.14.2. See "Next steps".
 
 ## How it was produced (`decompile/import.sh`)
 1. apktool decodes the smali. `smali_rename.py` renames classes, restores enum-constant names,
@@ -193,4 +204,16 @@ the region's rects, and the AI (`a/Ca`, `b/e/Ca`) is side-agnostic.
 ## Next steps
 - Run it on a phone and compare behaviour with compat1.
 - Give the game's own classes readable names (add to `classes.tiny` or use a jadx mapping).
-- Map the bundled libGDX to real names, then move to stock libGDX 1.9.x or later from Maven, with matching natives on every ABI.
+- **Finish the libGDX Java swap** (blocked tonight by the ProGuard merge, not just class names):
+  1. Using `decompile/classes.tiny`, map every obfuscated libGDX type/method/field the game
+     calls onto the real 1.14.2 API (or keep a thin shim). ProGuard also merged and shrunk
+     methods, so this is more than a rename.
+  2. Replace `libs/gdx-1.7.0-invertbit.jar` with `com.badlogicgames.gdx:gdx:1.14.2` plus
+     `gdx-backend-android` and `gdx-freetype`. The hand-written `backends.android.a.Cg`
+     EGL fallback can be dropped if stock `GdxEglConfigChooser` already accepts RGBA8888.
+  3. Then ship matching 1.14.2 `libgdx.so` for every ABI (already 16 KB-aligned, including
+     x86_64). Until that Java move lands, x86_64 `libgdx.so` has to stay on 1.9.4 (4 KB
+     LOAD alignment) so the 1.7.0 AndroidGL20 JNI still resolves.
+- Game speed control for the real-time battle (1x/2x/4x HUD toggle that respects pause).
+- Sound / settings.
+- Post-match stats.
