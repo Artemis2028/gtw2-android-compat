@@ -8,10 +8,20 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs += ['-Xlint:-options', '-nowarn', '-Xmaxerrs', '5000', '-Xdiags:verbose']
 }
 
+// Drop the original GdxEglConfigChooser (a/Cg) so :android can ship the fallback chooser
+// without a duplicate class. Everything else in the obfuscated libGDX jar is unchanged.
+def filterGdxJar = tasks.register('filterGdxJar', Jar) {
+    from(zipTree(file('../libs/gdx-1.7.0-invertbit.jar'))) {
+        exclude 'com/badlogic/gdx/backends/android/a/Cg.class'
+    }
+    archiveFileName = 'gdx-1.7.0-invertbit-filtered.jar'
+    destinationDirectory = layout.buildDirectory.dir('libs')
+}
+
 dependencies {
     // Original (ProGuard-obfuscated) libGDX 1.7.0 bytecode from the APK, class names remapped
-    // by decompile/import.sh. Exposed to :android as well.
-    api files('../libs/gdx-1.7.0-invertbit.jar')
+    // by decompile/import.sh. Exposed to :android as well, minus a.Cg (see filterGdxJar).
+    api files(filterGdxJar)
 }
 
 dependencies {

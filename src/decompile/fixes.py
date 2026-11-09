@@ -137,6 +137,16 @@ fix('core/src/main/java/com/invertbit/games/gtw/c/Cp.java',
 # - a/Cg: home regions are also marked on the map's own region objects, so the AI opponent cannot
 #   ally a region the other side starts with (extra homes chile, alaska).
 # - nations/Nations: USA also starts with alaska (extraHomes), like SOUTH_AMERICA with chile.
+#
+# EGL on API 35+ emulators (not a jadx rewrite; the class lives in the obfuscated libGDX jar):
+# backends.android.a.Cg (GdxEglConfigChooser) required an exact RGB565 match and returned null
+# when the device only listed RGBA8888 GLES2 configs. Cb$Ib.createContext then passed that
+# null config to eglCreateContext, which threw IllegalArgumentException. The replacement is
+# android/src/main/java/com/badlogic/gdx/backends/android/a/Cg.java (same name and constructor
+# so AndroidGraphics can still new it). Selection/fallback logic is gtw/egl/EglCompat, covered
+# by EglCompatTest. core/build.gradle filterGdxJar strips the original a.Cg from the libGDX jar.
+# Cb$Ib.createContext already passed {EGL_CONTEXT_CLIENT_VERSION=0x3098, 2, EGL_NONE} and
+# EGL_NO_CONTEXT; that attrib list is documented and tested in EglCompat.contextAttribList().
 
 def main():
     bad = 0
