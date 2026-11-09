@@ -211,9 +211,14 @@ public final class Caj extends com.invertbit.games.gtw.c.Ca implements com.inver
         cl.a = i + cl.a;
         this.f.a();
         this.r = java.lang.System.currentTimeMillis();
+        // Load prefs in this process even if Settings/sound have not been opened yet, then
+        // copy the saved default onto the live speed *before* e() paints the HUD caption.
+        com.invertbit.games.gtw.settings.GameSettings.loadFromPrefs();
+        int def = com.invertbit.games.gtw.settings.GameSettings.get().defaultSpeed();
+        pause().setDefaultSpeed(def);
+        pause().setSpeed(def);
         e();
         // New battle: never inherit a pause from the last match or from the app's background trip.
-        pause().setDefaultSpeed(com.invertbit.games.gtw.settings.GameSettings.get().defaultSpeed());
         pause().start(this.r);
         this.i = false;
     }

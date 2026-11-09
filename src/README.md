@@ -214,8 +214,8 @@ The Settings screen (already home to Sound on/off and the default difficulty) no
   impact 1.0). Sound off still mutes completely; the stored volume is kept for when sound
   is turned back on.
 - **Speed: 1x / 2x / 4x** — the default battle-speed multiplier applied when a new match
-  starts (`BattlePause.setDefaultSpeed` then `start()`). The in-battle HUD toggle still
-  cycles the current match independently.
+  starts (`BattlePause.setDefaultSpeed` / `setSpeed` before the HUD is built, then
+  `start()`). The in-battle HUD toggle still cycles the current match independently.
 
 Prefs live in the existing `GTWGame` file under `v1_sound` (original boolean), `v1_volume`
 (int percent) and `v1_speed` (int 1/2/4). `GameSettings` holds the values and the cycle
