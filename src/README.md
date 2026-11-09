@@ -201,6 +201,12 @@ the region's rects, and the AI (`a/Ca`, `b/e/Ca`) is side-agnostic.
 * **Not changed.** The tutorial (USA only) is unchanged. Saves store the side's `name()`
   (e.g. `SOUTH_AMERICA`), so a save that uses a new side can't be opened by older builds.
 
+### Battle speed (1x / 2x / 4x)
+The running HUD has a toggle next to Pause that cycles 1x → 2x → 4x → 1x. `BattlePause.frame()`
+multiplies elapsed battle time (and AI turns) by that factor; while paused the multiplier is
+ignored and the sim stays frozen. A new battle restores the default speed (1x until Settings
+can change it). `BattlePauseTest` covers 1x/2x/4x, pause-at-4x, cycling, and start() reset.
+
 ## Next steps
 - Run it on a phone and compare behaviour with compat1.
 - Give the game's own classes readable names (add to `classes.tiny` or use a jadx mapping).
@@ -214,6 +220,5 @@ the region's rects, and the AI (`a/Ca`, `b/e/Ca`) is side-agnostic.
   3. Then ship matching 1.14.2 `libgdx.so` for every ABI (already 16 KB-aligned, including
      x86_64). Until that Java move lands, x86_64 `libgdx.so` has to stay on 1.9.4 (4 KB
      LOAD alignment) so the 1.7.0 AndroidGL20 JNI still resolves.
-- Game speed control for the real-time battle (1x/2x/4x HUD toggle that respects pause).
 - Sound / settings.
 - Post-match stats.

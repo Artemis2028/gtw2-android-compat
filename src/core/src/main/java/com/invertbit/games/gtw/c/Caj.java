@@ -83,11 +83,25 @@ public final class Caj extends com.invertbit.games.gtw.c.Ca implements com.inver
         this.l.a(this.m);
     }
 
-    /** Builds the Pause button (stage u, shown while running) and the Resume / Quit overlay (stage t, shown while paused). */
+    /** Builds the Pause and 1x/2x/4x buttons (stage u, shown while running) and the Resume / Quit overlay (stage t, shown while paused). */
     private void e() {
         this.u.d();
         com.badlogic.gdx.f.a.a.Ce hud = new com.badlogic.gdx.f.a.a.Ce();
         hud.J = true;
+        final com.invertbit.games.gtw.c.a.Cc speedButton = new com.invertbit.games.gtw.c.a.Cc(
+                com.invertbit.games.gtw.c.BattleHudLayout.SPEED_WIDTH,
+                com.invertbit.games.gtw.c.BattleHudLayout.SPEED_HEIGHT,
+                pause().speedLabel(),
+                com.invertbit.games.gtw.b.e.Cg.s73, com.invertbit.games.gtw.b.e.Cg.s30.h);
+        speedButton.a(new com.badlogic.gdx.f.a.Cg() {
+            @Override public final boolean a() {
+                com.invertbit.games.gtw.c.Caj.this.pause().cycleSpeed();
+                speedButton.setCaption(com.invertbit.games.gtw.c.Caj.this.pause().speedLabel());
+                return true;
+            }
+        });
+        hud.c(speedButton).l().i().e(10.0f)
+                .g(com.invertbit.games.gtw.c.BattleHudLayout.PAD);
         com.invertbit.games.gtw.c.a.Cc pauseButton = new com.invertbit.games.gtw.c.a.Cc(
                 com.invertbit.games.gtw.c.BattleHudLayout.PAUSE_WIDTH,
                 com.invertbit.games.gtw.c.BattleHudLayout.PAUSE_HEIGHT,

@@ -30,12 +30,54 @@ public final class BattlePause {
     private volatile boolean paused;
     private long last;
     private boolean started;
+    private int speed = 1;
+    private int defaultSpeed = 1;
 
-    /** A new battle: running, overlay hidden, clock restarted (drops any stale pause). */
+    /** A new battle: running, overlay hidden, clock restarted (drops any stale pause).
+     *  Speed returns to {@link #defaultSpeed()} (1x until settings change it). */
     public void start(long now) {
         paused = false;
         last = now;
         started = true;
+        speed = defaultSpeed;
+    }
+
+    public int speed() {
+        return speed;
+    }
+
+    public int defaultSpeed() {
+        return defaultSpeed;
+    }
+
+    public String speedLabel() {
+        return speed + "x";
+    }
+
+    /** Accepts 1, 2 or 4. Other values are ignored. */
+    public void setSpeed(int s) {
+        if (s == 1 || s == 2 || s == 4) {
+            speed = s;
+        }
+    }
+
+    /** Default applied by {@link #start(long)}. Accepts 1, 2 or 4. */
+    public void setDefaultSpeed(int s) {
+        if (s == 1 || s == 2 || s == 4) {
+            defaultSpeed = s;
+        }
+    }
+
+    /** Cycle 1x → 2x → 4x → 1x. Returns the new multiplier. */
+    public int cycleSpeed() {
+        if (speed == 1) {
+            speed = 2;
+        } else if (speed == 2) {
+            speed = 4;
+        } else {
+            speed = 1;
+        }
+        return speed;
     }
 
     public void pause() {
@@ -77,7 +119,7 @@ public final class BattlePause {
         return false;
     }
 
-    /** Battle time for this frame: 0 while paused, else the wall-clock since the last frame or resume. */
+    /** Battle time for this frame: 0 while paused, else wall-clock since the last frame or resume, times {@link #speed()}. */
     public long frame(long now) {
         if (!started) {
             start(now);
@@ -87,7 +129,7 @@ public final class BattlePause {
         if (paused || ms < 0) {
             return 0L;
         }
-        return ms;
+        return ms * (long) speed;
     }
 
     /**
@@ -105,7 +147,10 @@ public final class BattlePause {
         }
         sim.advance(ms);
         if (!sim.countdownRunning() && !AiOff.isOn()) {
-            sim.ai();
+            // One AI turn per 1x frame so 2x/4x keep the same decisions per game-second.
+            for (int i = 0; i < speed; i++) {
+                sim.ai();
+            }
         }
     }
 }

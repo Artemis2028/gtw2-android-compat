@@ -214,6 +214,61 @@ public class BattlePauseTest {
     }
 
     @Test
+    public void speedMultipliesRunningTimeAndIsIgnoredWhilePaused() {
+        BattlePause p = new BattlePause();
+        FakeBattle b = new FakeBattle(-1f);        // countdown already over (d < 0), so AI acts
+        p.start(T0);
+        assertEquals(1, p.speed());
+        assertEquals("1x", p.speedLabel());
+        long now = run(p, b, T0, 10);
+        assertEquals(10 * FRAME, b.simMs);
+        assertEquals(10, b.aiTurns);
+
+        p.setSpeed(2);
+        assertEquals("2x", p.speedLabel());
+        now = run(p, b, now, 10);
+        assertEquals("2x doubles battle time", 10 * FRAME + 10 * FRAME * 2, b.simMs);
+        assertEquals("2x runs two AI turns per frame", 10 + 20, b.aiTurns);
+
+        p.setSpeed(4);
+        now = run(p, b, now, 5);
+        assertEquals(10 * FRAME + 20 * FRAME + 5 * FRAME * 4, b.simMs);
+        assertEquals(10 + 20 + 20, b.aiTurns);
+
+        p.pause();
+        String frozen = b.snapshot();
+        run(p, b, now, 40);
+        assertEquals("speed must not thaw a paused battle", frozen, b.snapshot());
+    }
+
+    @Test
+    public void cycleSpeedGoesOneTwoFourOneAndRejectsJunk() {
+        BattlePause q = new BattlePause();
+        assertEquals(1, q.speed());
+        assertEquals(2, q.cycleSpeed());
+        assertEquals(4, q.cycleSpeed());
+        assertEquals(1, q.cycleSpeed());
+        assertEquals(2, q.cycleSpeed());
+        q.setSpeed(3);
+        assertEquals("invalid speed is ignored", 2, q.speed());
+        q.setSpeed(0);
+        assertEquals(2, q.speed());
+    }
+
+    @Test
+    public void newBattleRestoresDefaultSpeed() {
+        BattlePause p = new BattlePause();
+        p.start(T0);
+        p.setSpeed(4);
+        p.start(T0 + 1_000);
+        assertEquals(1, p.speed());
+        p.setDefaultSpeed(2);
+        p.setSpeed(4);
+        p.start(T0 + 2_000);
+        assertEquals("start applies defaultSpeed, not the last in-battle setting", 2, p.speed());
+    }
+
+    @Test
     public void overlayIsDrawnExactlyWhilePaused() throws Exception {
         Caj c = battle();
         c.t = (com.badlogic.gdx.f.a.Ci) allocate(com.badlogic.gdx.f.a.Ci.class);   // Resume / Quit

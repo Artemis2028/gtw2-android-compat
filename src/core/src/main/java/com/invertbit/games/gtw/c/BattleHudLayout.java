@@ -19,6 +19,8 @@ public final class BattleHudLayout {
     public static final int WORLD_HEIGHT = 1080;
     public static final int PAUSE_WIDTH = 160;
     public static final int PAUSE_HEIGHT = 100;
+    public static final int SPEED_WIDTH = 120;
+    public static final int SPEED_HEIGHT = 100;
     public static final int PAD = 20;
 
     private BattleHudLayout() {
