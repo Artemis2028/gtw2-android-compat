@@ -97,6 +97,7 @@ public final class Caj extends com.invertbit.games.gtw.c.Ca implements com.inver
             }
         });
         hud.c(pauseButton).m().l().i().e(20.0f).g(20.0f);
+        addAiOffLabel(hud);
         this.u.a(hud);
 
         this.t.d();
@@ -109,7 +110,21 @@ public final class Caj extends com.invertbit.games.gtw.c.Ca implements com.inver
         com.invertbit.games.gtw.c.a.Cc quit = new com.invertbit.games.gtw.c.a.Cc("Quit to menu", com.invertbit.games.gtw.b.e.Cg.s73, com.invertbit.games.gtw.b.e.Cg.s30.h, new com.badlogic.gdx.graphics.Cb(0.0f, 0.13f, 0.15f, 1.0f));
         quit.a(new com.invertbit.games.gtw.c.Cal(this, resume));
         ce.c(quit).m().h().i();
+        addAiOffLabel(ce);
         this.t.a(ce);
+    }
+
+    /** Small "AI OFF" badge on the battle HUD when the test switch is on, so screenshots prove it. */
+    private void addAiOffLabel(com.badlogic.gdx.f.a.a.Ce table) {
+        if (!com.invertbit.games.gtw.c.AiOff.isOn()) {
+            return;
+        }
+        table.i();
+        com.invertbit.games.gtw.c.a.Cc label = new com.invertbit.games.gtw.c.a.Cc(
+                140, 70, "AI OFF",
+                com.invertbit.games.gtw.b.e.Cg.s73,
+                new com.badlogic.gdx.graphics.Cb(1.0f, 0.9f, 0.2f, 1.0f));
+        table.c(label).l().i().e(20.0f).g(10.0f);
     }
 
     /** Freeze the battle clock, AI and missiles (Back key, Pause button, or app background). */
@@ -227,6 +242,9 @@ public final class Caj extends com.invertbit.games.gtw.c.Ca implements com.inver
         }
 
         @Override public void ai() {
+            if (com.invertbit.games.gtw.c.AiOff.isOn()) {
+                return;
+            }
             com.invertbit.games.gtw.c.Caj.this.m.a(com.invertbit.games.gtw.c.Caj.this.l);
         }
     };

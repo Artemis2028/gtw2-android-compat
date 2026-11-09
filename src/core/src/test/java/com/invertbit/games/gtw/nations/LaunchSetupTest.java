@@ -78,6 +78,7 @@ public class LaunchSetupTest {
     @Before
     public void freshSingletons() throws Exception {
         com.invertbit.games.gtw.b.e.Ca.a = null;
+        com.invertbit.games.gtw.c.AiOff.reset();
         setDifficulty(com.invertbit.games.gtw.Cb.Ia.NORMAL);
     }
 
@@ -161,6 +162,21 @@ public class LaunchSetupTest {
             }
         }
         return game;
+    }
+
+    @Test(timeout = 60000)
+    public void aiOffSkipsOpponentAlliancesButStillDeploys() throws Exception {
+        com.invertbit.games.gtw.c.AiOff.set(true);
+        try {
+            java.util.Map<String, Cf> regions = com.invertbit.games.gtw.b.a.Ca.regions(parseWorld());
+            Cg game = newGame(Ci.Ia.SOUTH_AMERICA, Ci.Ia.RUSSIA, 5, regions, false);
+            int homes = game.b().f();
+            RoundSetup.deploy(game, grid(regions));
+            assertEquals("AI-off picks no extra allies", homes, game.b().f());
+            assertDeployed(game, "AI-off SOUTH_AMERICA vs RUSSIA");
+        } finally {
+            com.invertbit.games.gtw.c.AiOff.reset();
+        }
     }
 
     @Test(timeout = 60000)

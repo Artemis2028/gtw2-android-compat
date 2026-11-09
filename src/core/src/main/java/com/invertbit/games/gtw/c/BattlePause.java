@@ -22,7 +22,7 @@ public final class BattlePause {
         /** True while the DEFCON countdown before launches is still running. */
         boolean countdownRunning();
 
-        /** Let the AI act (only once the DEFCON countdown is over). */
+        /** Let the AI act (only once the DEFCON countdown is over, and never when {@link AiOff} is on). */
         void ai();
     }
 
@@ -92,7 +92,8 @@ public final class BattlePause {
 
     /**
      * One battle frame. While paused nothing in {@code sim} is called, so units, missiles, AI and
-     * the DEFCON countdown stay where they are.
+     * the DEFCON countdown stay where they are. When {@link AiOff} is on the world still advances
+     * but {@link Sim#ai()} is never called.
      */
     public void step(long now, Sim sim) {
         long ms = frame(now);
@@ -103,7 +104,7 @@ public final class BattlePause {
             sim.gameOver();
         }
         sim.advance(ms);
-        if (!sim.countdownRunning()) {
+        if (!sim.countdownRunning() && !AiOff.isOn()) {
             sim.ai();
         }
     }

@@ -24,7 +24,10 @@ public final class RoundSetup {
             com.invertbit.games.gtw.b.e.Ca.a = new com.invertbit.games.gtw.b.e.Ca();
         }
         com.invertbit.games.gtw.b.e.Ca ca3 = com.invertbit.games.gtw.b.e.Ca.a;
-        ca3.a(cgB.c, cgB.b());
+        // AI-off: no alliance picks. Arsenal is still deployed so the world looks normal.
+        if (!com.invertbit.games.gtw.c.AiOff.isOn()) {
+            ca3.a(cgB.c, cgB.b());
+        }
         ca3.a(cgB.b());
         if (cgB.a().i.a()) {
             ca3.a(cgB.a());

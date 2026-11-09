@@ -187,6 +187,33 @@ public class BattlePauseTest {
     }
 
     @Test
+    public void aiOffMeansZeroAiActionsOverManyTicks() {
+        AiOff.set(true);
+        try {
+            BattlePause p = new BattlePause();
+            FakeBattle b = new FakeBattle(0.5f);       // short countdown: AI would act if it were on
+            p.start(T0);
+            run(p, b, T0, 500);                         // 8 s of battle time
+            assertFalse("countdown should be over, so the AI would have acted if on", b.clock.a());
+            assertEquals("AI-off means zero AI actions", 0, b.aiTurns);
+            assertEquals("the world still advances", 500 * FRAME, b.simMs);
+        } finally {
+            AiOff.reset();
+        }
+    }
+
+    @Test
+    public void defaultLeavesAiUnchanged() {
+        assertFalse("AI-off must default to off", AiOff.isOn());
+        BattlePause p = new BattlePause();
+        FakeBattle b = new FakeBattle(0.5f);
+        p.start(T0);
+        run(p, b, T0, 100);
+        assertFalse(b.clock.a());
+        assertTrue("default play still lets the AI act", b.aiTurns > 0);
+    }
+
+    @Test
     public void overlayIsDrawnExactlyWhilePaused() throws Exception {
         Caj c = battle();
         c.t = (com.badlogic.gdx.f.a.Ci) allocate(com.badlogic.gdx.f.a.Ci.class);   // Resume / Quit
