@@ -7,6 +7,8 @@ import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -28,6 +30,7 @@ import com.invertbit.games.gtw.nations.Side;
 import com.invertbit.games.gtw.sim.Battle;
 import com.invertbit.games.gtw.sim.BattlePause;
 import com.invertbit.games.gtw.sim.City;
+import com.invertbit.games.gtw.sim.Explosion;
 import com.invertbit.games.gtw.sim.Launcher;
 import com.invertbit.games.gtw.sim.Match;
 import com.invertbit.games.gtw.sim.Missile;
@@ -59,6 +62,7 @@ public class BattleScreen extends ScreenAdapter {
     private Label status;
     private Label ticker;
     private boolean shownGameOver;
+    private Texture bloom;
 
     public BattleScreen(GtwGame game, Match match) {
         this.game = game;
@@ -282,6 +286,7 @@ public class BattleScreen extends ScreenAdapter {
         game.shapes.setProjectionMatrix(camera.combined);
         drawMap();
         drawUnits();
+        drawExplosions();
         logUnitScreens();
         updateLabels();
         if (pause.overlayVisible()) {
@@ -480,13 +485,78 @@ public class BattleScreen extends ScreenAdapter {
         camera.update();
     }
 
+    /**
+     * 2D stand-in for the original white {@code explosionObject} / {@code rocketobject}
+     * ellipsoid: a soft radial disc, white, alpha 0.5, additive blend (the shader
+     * blew out RGB via {@code 1/sin} which reads as a bloom). Size and lifetime
+     * come from {@link Explosion}.
+     */
+    private void drawExplosions() {
+        if (battle.explosions.isEmpty()) {
+            return;
+        }
+        Texture texture = bloomTexture();
+        game.batch.setProjectionMatrix(camera.combined);
+        game.batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+        game.batch.begin();
+        for (Explosion flash : battle.explosions) {
+            float radius = flash.radius();
+            float x = Missile.wrapX(flash.x);
+            float y = -flash.z;
+            game.batch.setColor(1f, 1f, 1f, flash.alpha());
+            game.batch.draw(texture, x - radius, y - radius, radius * 2f, radius * 2f);
+            if (x - radius < 0f) {
+                game.batch.draw(texture, x - radius + Explosion.WORLD_WIDTH, y - radius,
+                        radius * 2f, radius * 2f);
+            } else if (x + radius > Explosion.WORLD_WIDTH) {
+                game.batch.draw(texture, x - radius - Explosion.WORLD_WIDTH, y - radius,
+                        radius * 2f, radius * 2f);
+            }
+        }
+        game.batch.end();
+        game.batch.setColor(Color.WHITE);
+        game.batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    }
+
+    private Texture bloomTexture() {
+        if (bloom != null) {
+            return bloom;
+        }
+        int size = 128;
+        float center = (size - 1) * 0.5f;
+        Pixmap pixmap = new Pixmap(size, size, Pixmap.Format.RGBA8888);
+        for (int y = 0; y < size; y++) {
+            for (int x = 0; x < size; x++) {
+                float dx = (x - center) / center;
+                float dy = (y - center) / center;
+                float dist = (float) Math.sqrt(dx * dx + dy * dy);
+                float falloff = dist >= 1f ? 0f : (1f - dist) * (1f - dist);
+                pixmap.setColor(1f, 1f, 1f, falloff);
+                pixmap.drawPixel(x, y);
+            }
+        }
+        bloom = new Texture(pixmap);
+        bloom.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        pixmap.dispose();
+        return bloom;
+    }
+
+    private void disposeBloom() {
+        if (bloom != null) {
+            bloom.dispose();
+            bloom = null;
+        }
+    }
+
     @Override
     public void hide() {
         Gdx.input.setInputProcessor(null);
+        disposeBloom();
     }
 
     @Override
     public void dispose() {
+        disposeBloom();
         hud.dispose();
         overlay.dispose();
     }

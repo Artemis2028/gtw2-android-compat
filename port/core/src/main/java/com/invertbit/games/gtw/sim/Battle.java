@@ -14,6 +14,8 @@ public final class Battle implements BattlePause.Sim {
     public final List<Missile> missiles = new ArrayList<Missile>();
     /** Bombers flying to their target (original {@code b.d.Cd}); not ICBMs, so not in {@link #missiles}. */
     public final List<Launcher> sorties = new ArrayList<Launcher>();
+    /** Impact blooms (original {@code gtw.b.Cg}); aged with battle time. */
+    public final List<Explosion> explosions = new ArrayList<Explosion>();
     public Launcher selected;
     public boolean finished;
     /** Missiles that reached their target; the screen plays the impact sound when it grows. */
@@ -57,6 +59,12 @@ public final class Battle implements BattlePause.Sim {
     public void advance(long ms) {
         DefconClock.clock(clock, ms);
         float seconds = ms / 1000.0f;
+        Iterator<Explosion> flash = explosions.iterator();
+        while (flash.hasNext()) {
+            if (flash.next().advance(seconds)) {
+                flash.remove();
+            }
+        }
         List<Missile> landed = new ArrayList<Missile>();
         for (Missile missile : missiles) {
             if (missile.advance(seconds)) {
@@ -203,6 +211,9 @@ public final class Battle implements BattlePause.Sim {
 
     private void resolve(Launcher source, MapUnit target) {
         impacts++;
+        if (target != null && target.position != null) {
+            explosions.add(new Explosion(target.position.x, target.position.z));
+        }
         Player shooter = ownerOf(source.owner);
         if (shooter != null) {
             shooter.remainingWeapons -= source.yield;
