@@ -68,14 +68,16 @@ public class NationPreviewLayoutTest {
         float[] cells = NationPreviewLayout.cells(0f, 400f, 1920f, 500f);
         for (int i = 0; i < Nations.PICK_ORDER.length; i++) {
             Side side = Nations.PICK_ORDER[i];
-            List<List<Vector3>> rings = NationPreviewLayout.homeRings(map, side);
+            float cellW = cells[i * 4 + 2];
+            float cellH = cells[i * 4 + 3];
+            List<List<Vector3>> rings = NationPreviewLayout.previewRings(
+                    NationPreviewLayout.homeRings(map, side),
+                    cellW, cellH, NationPreviewLayout.CELL_PAD);
             assertTrue(side + " has no home rings", !rings.isEmpty());
             float[] box = NationPreviewLayout.bounds(rings);
             assertNotNull(side + " bounds", box);
             float cellX = cells[i * 4];
             float cellY = cells[i * 4 + 1];
-            float cellW = cells[i * 4 + 2];
-            float cellH = cells[i * 4 + 3];
             float[] fit = NationPreviewLayout.fit(box[0], box[1], box[2], box[3],
                     cellX, cellY, cellW, cellH, NationPreviewLayout.CELL_PAD);
             assertTrue(side + " scale", fit[0] > 0f);
@@ -94,6 +96,27 @@ public class NationPreviewLayoutTest {
             }
             assertTrue(side + " empty", points > 0);
         }
+    }
+
+    @Test
+    public void russiaPreviewDropsDatelineScrapAndUsaKeepsAlaska() throws Exception {
+        WorldMap map = loadMap();
+        float cellW = 640f;
+        float cellH = 250f;
+        List<List<Vector3>> russiaAll = NationPreviewLayout.homeRings(map, Side.RUSSIA);
+        List<List<Vector3>> russia = NationPreviewLayout.previewRings(
+                russiaAll, cellW, cellH, NationPreviewLayout.CELL_PAD);
+        assertTrue("russia should keep the mainland", russia.size() >= 1);
+        assertTrue("russia should drop the wrapped Chukotka scrap",
+                russia.size() < russiaAll.size());
+        float[] box = NationPreviewLayout.bounds(russia);
+        assertTrue("russia preview should not span the whole world",
+                box[2] - box[0] < 2000f);
+
+        List<List<Vector3>> usaAll = NationPreviewLayout.homeRings(map, Side.USA);
+        List<List<Vector3>> usa = NationPreviewLayout.previewRings(
+                usaAll, cellW, cellH, NationPreviewLayout.CELL_PAD);
+        assertEquals("USA preview should keep alaska", usaAll.size(), usa.size());
     }
 
     private static WorldMap loadMap() throws Exception {

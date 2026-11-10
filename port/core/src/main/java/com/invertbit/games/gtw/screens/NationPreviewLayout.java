@@ -24,6 +24,10 @@ public final class NationPreviewLayout {
     public static final float BACK_PAD_TOP = 8f;
     public static final float BACK_PAD_BOTTOM = 16f;
     public static final float CELL_PAD = 22f;
+    /** Keep an extra home ring only if the fitted scale stays at least this
+     * fraction of the largest-ring scale. Drops dateline scraps (Chukotka)
+     * that would shrink the whole silhouette, but keeps Alaska. */
+    public static final float MIN_KEEP_SCALE = 0.5f;
     public static final int COLS = 3;
     public static final int ROWS = 2;
     /** Target nation-label size as a fraction of the 140px button height. */
@@ -141,4 +145,55 @@ public final class NationPreviewLayout {
     public static float screenY(float worldZ, float[] fit) {
         return fit[4] + (fit[2] - worldZ) * fit[0];
     }
+
+    public static float ringArea(List<Vector3> ring) {
+        float area = 0f;
+        int n = ring.size();
+        for (int i = 0; i < n; i++) {
+            Vector3 p = ring.get(i);
+            Vector3 q = ring.get((i + 1) % n);
+            area += p.x * q.z - q.x * p.z;
+        }
+        return Math.abs(area) * 0.5f;
+    }
+
+    /**
+     * Rings to draw in a pick cell: start from the largest landmass and add
+     * extras only while the fitted scale stays above {@link #MIN_KEEP_SCALE}
+     * of that primary scale.
+     */
+    public static List<List<Vector3>> previewRings(List<List<Vector3>> rings,
+                                                   float cellW, float cellH, float pad) {
+        if (rings == null || rings.size() <= 1) {
+            return rings;
+        }
+        int primary = 0;
+        float best = -1f;
+        for (int i = 0; i < rings.size(); i++) {
+            float area = ringArea(rings.get(i));
+            if (area > best) {
+                best = area;
+                primary = i;
+            }
+        }
+        List<List<Vector3>> included = new ArrayList<List<Vector3>>();
+        included.add(rings.get(primary));
+        float[] primBox = bounds(included);
+        float primScale = fit(primBox[0], primBox[1], primBox[2], primBox[3],
+                0f, 0f, cellW, cellH, pad)[0];
+        for (int i = 0; i < rings.size(); i++) {
+            if (i == primary) {
+                continue;
+            }
+            included.add(rings.get(i));
+            float[] box = bounds(included);
+            float scale = fit(box[0], box[1], box[2], box[3],
+                    0f, 0f, cellW, cellH, pad)[0];
+            if (scale < primScale * MIN_KEEP_SCALE) {
+                included.remove(included.size() - 1);
+            }
+        }
+        return included;
+    }
+
 }

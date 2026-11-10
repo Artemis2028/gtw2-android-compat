@@ -184,7 +184,10 @@ public class NationPickScreen extends ScreenAdapter {
                     silArea.getX(), silArea.getY(), silArea.getWidth(), silArea.getHeight());
             for (int i = 0; i < Nations.PICK_ORDER.length; i++) {
                 Side side = Nations.PICK_ORDER[i];
-                List<List<Vector3>> rings = NationPreviewLayout.homeRings(map, side);
+                List<List<Vector3>> rings = NationPreviewLayout.previewRings(
+                        NationPreviewLayout.homeRings(map, side),
+                        cells[i * 4 + 2], cells[i * 4 + 3],
+                        NationPreviewLayout.CELL_PAD);
                 float[] box = NationPreviewLayout.bounds(rings);
                 if (box == null) {
                     continue;
