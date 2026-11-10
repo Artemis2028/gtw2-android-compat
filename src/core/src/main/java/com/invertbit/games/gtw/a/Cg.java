@@ -34,20 +34,7 @@ public class Cg {
     }
 
     public static com.invertbit.games.gtw.b.Cf.Ib a(com.invertbit.games.gtw.a.Ci.Ia ia) {
-        try {
-            return com.invertbit.games.gtw.b.Cf.Ib.valueOf(ia.name().toLowerCase());
-        } catch (java.lang.Exception e) {
-            switch (com.invertbit.games.gtw.a.Ch.a[ia.ordinal()]) {
-                case 1:
-                    return com.invertbit.games.gtw.b.Cf.Ib.usa;
-                case 2:
-                    return com.invertbit.games.gtw.b.Cf.Ib.russia;
-                case 3:
-                    return com.invertbit.games.gtw.b.Cf.Ib.china;
-                default:
-                    return null;
-            }
-        }
+        return com.invertbit.games.gtw.nations.Nations.home(ia);
     }
 
     public final com.invertbit.games.gtw.a.Ci a(com.invertbit.games.gtw.a.Ci.Ia ia, com.invertbit.games.gtw.b.Cf.Ib ib, boolean z) {
@@ -63,8 +50,44 @@ public class Cg {
         cf.c = ia;
         cf.e = strName;
         ca.c(cf);
+        for (com.invertbit.games.gtw.b.Cf.Ib extra : com.invertbit.games.gtw.nations.Nations.extraHomes(ia)) {
+            com.invertbit.games.gtw.b.Cf more = new com.invertbit.games.gtw.b.Cf();
+            more.c = ia;
+            more.e = extra.name();
+            ca.c(more);
+        }
+        if (z) {
+            releaseMap();                            // new game: the player side is created first
+        }
+        claimOnMap(ia, ib);
+        for (com.invertbit.games.gtw.b.Cf.Ib extra : com.invertbit.games.gtw.nations.Nations.extraHomes(ia)) {
+            claimOnMap(ia, extra);
+        }
         a(ca);
         return ca;
+    }
+
+    private static void releaseMap() {
+        java.util.Map<java.lang.String, com.invertbit.games.gtw.b.Cf> map = com.invertbit.games.gtw.b.a.Ca.a().loadedRegions();
+        if (map != null) {
+            for (com.invertbit.games.gtw.b.Cf cf : map.values()) {
+                cf.c = null;
+            }
+        }
+    }
+
+    /**
+     * Marks the map's own region object as owned, as loading a saved game does (a/Ci.a). The AI
+     * picks allies only among map regions with no owner (b/e/Ca); original homes are left out of
+     * every alliance table, but extra homes (chile, alaska) are not, so without this the AI
+     * opponent could take a region the other side starts with.
+     */
+    private static void claimOnMap(com.invertbit.games.gtw.a.Ci.Ia ia, com.invertbit.games.gtw.b.Cf.Ib region) {
+        java.util.Map<java.lang.String, com.invertbit.games.gtw.b.Cf> map = com.invertbit.games.gtw.b.a.Ca.a().loadedRegions();
+        com.invertbit.games.gtw.b.Cf onMap = map == null ? null : map.get(region.name());
+        if (onMap != null) {
+            onMap.c = ia;
+        }
     }
 
     public final boolean e() {

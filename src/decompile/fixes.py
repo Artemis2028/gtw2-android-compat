@@ -54,13 +54,11 @@ fix('core/src/main/java/com/invertbit/games/gtw/c/a/Ce.java',
     '.a((float) this.O).m()', count=2)
 
 # jadx emptied this switch (per-nation HUD colours: USA blue, RUSSIA orange, CHINA green).
+# Since feat/more-nations the colours (original values kept) live in nations/Nations.hudColor.
 fix('core/src/main/java/com/invertbit/games/gtw/c/a/Cf.java',
-    '        switch (com.invertbit.games.gtw.c.a.Cg.a[ia.ordinal()]) {\n        }\n',
-    '        switch (com.invertbit.games.gtw.c.a.Cg.a[ia.ordinal()]) {\n'
-    '            case 1:\n                return new com.badlogic.gdx.graphics.Cb(0.0f, 0.52f, 1.0f, 0.3f);\n'
-    '            case 2:\n                return new com.badlogic.gdx.graphics.Cb(1.0f, 0.37f, 0.0f, 0.3f);\n'
-    '            case 3:\n                return new com.badlogic.gdx.graphics.Cb(0.0f, 1.0f, 0.5f, 0.3f);\n'
-    '        }\n')
+    '        switch (com.invertbit.games.gtw.c.a.Cg.a[ia.ordinal()]) {\n        }\n'
+    '        return new com.badlogic.gdx.graphics.Cb(0.0f, 0.52f, 1.0f, 0.3f);\n',
+    '        return com.invertbit.games.gtw.nations.Nations.hudColor(ia);\n')
 
 # jadx overwrote the found element with null after the search loop, so destroyed units were
 # never removed from the render list.
@@ -91,6 +89,71 @@ fix('core/src/main/java/com/invertbit/games/gtw/b/d/Cb.java',
                 }
             }
             this.a.remove(next);""")
+
+# Alliance map render (c/Cp.a(boolean)): jadx lost the inner loop's exit (smali: hasNext()==false
+# -> continue outer loop) and emitted `while (true) { if (it.hasNext()) {...} }`, an infinite loop
+# on the render thread that froze the Alliance screen for every side. Replaced with a bounded loop.
+fix('core/src/main/java/com/invertbit/games/gtw/c/Cp.java',
+    """            java.util.Iterator<com.invertbit.games.gtw.a.Ci> it = this.q.b.iterator();
+            while (true) {
+                if (it.hasNext()) {
+                    com.invertbit.games.gtw.a.Ci next = it.next();
+                    if (z && next.d.contains(cf)) {
+                        this.j.a(cg, com.invertbit.games.gtw.c.b.Ca.a(next.e, this.k));
+                        break;
+                    } else if (!z) {
+                        this.j.a(cg, this.k.a(com.invertbit.games.gtw.d.Ca.Ia.defaultBorder));
+                    }
+                }
+            }
+""",
+    """            if (z) {
+                com.invertbit.games.gtw.a.Ci owner = com.invertbit.games.gtw.nations.AllianceMap.owner(cf, this.q.b);
+                if (owner != null) {
+                    this.j.a(cg, com.invertbit.games.gtw.c.b.Ca.a(owner.e, this.k));
+                }
+            } else {
+                // the original draws the neutral border once per side
+                for (int n = 0; n < this.q.b.size(); n++) {
+                    this.j.a(cg, this.k.a(com.invertbit.games.gtw.d.Ca.Ia.defaultBorder));
+                }
+            }
+""")  # bounded owner lookup: nations/AllianceMap
+
+# feat/more-nations (EUROPE / AFRICA / SOUTH_AMERICA sides): the Cp fix above was found while testing it.
+# Checked while mapping the nation code: the SVG loader's `if (height != null) return;` in
+# c/a/Cb.startElement (svg height never stored) matches the original bytecode (if-nez -> skip),
+# so it is an original-game quirk, not a decompile error, and is deliberately left as is.
+# The obsolete enum switch maps a/Ch, b/d/Cc and c/a/Cg were deleted with the code that used them.
+
+# fix/launch-crash (feat/more-nations): changed by hand in core/ and covered by nations/LaunchSetupTest.
+# They are not FIXES entries because they restructure code (new methods and classes):
+# - gtw/c/Cw: jadx dropped the BOMBER case's `break` (bomber row showed the submarine). Now Cw.icon().
+# - c/a/Cb: the SVG path parser skips closepath "Z" (not a decompile bug; new world.svg outlines use it).
+# - gtw/c/Cl: the round setup on Start moved to gtw/b/e/RoundSetup so JVM tests can run it.
+# Stray map lines / alaska (same branch, nations/LaunchSetupTest + NationsTest):
+# - b/a/Ca: outline miters further than MAX_MITER line widths from the corner are skipped (joined()).
+#   A U-turn or an exactly straight corner in world.svg otherwise drew a long sliver.
+# - a/Cg: home regions are also marked on the map's own region objects, so the AI opponent cannot
+#   ally a region the other side starts with (extra homes chile, alaska).
+# - nations/Nations: USA also starts with alaska (extraHomes), like SOUTH_AMERICA with chile.
+#
+# EGL on API 35+ emulators (not a jadx rewrite; the class lives in the obfuscated libGDX jar):
+# backends.android.a.Cg (GdxEglConfigChooser) required an exact RGB565 match and returned null
+# when the device only listed RGBA8888 GLES2 configs. Cb$Ib.createContext then passed that
+# null config to eglCreateContext, which threw IllegalArgumentException. The replacement is
+# android/src/main/java/com/badlogic/gdx/backends/android/a/Cg.java (same name and constructor
+# so AndroidGraphics can still new it). Selection/fallback logic is gtw/egl/EglCompat, covered
+# by EglCompatTest. core/build.gradle filterGdxJar strips the original a.Cg from the libGDX jar.
+# Cb$Ib.createContext already passed {EGL_CONTEXT_CLIENT_VERSION=0x3098, 2, EGL_NONE} and
+# EGL_NO_CONTEXT; that attrib list is documented and tested in EglCompat.contextAttribList().
+#
+# Battle HUD resize (not a jadx rewrite): Caj.a(int,int) used to update only overlay stage t.
+# The running HUD stage u (Pause button) was never resized, so it stayed off-screen on
+# API 35+ phone AVDs. Both stages are resized through BattleHudLayout.stagesToResize;
+# button geometry (160x100, bottom-right, 20px pad, 1920x1080 world) lives in BattleHudLayout
+# and is covered by BattleHudLayoutTest.
+
 
 def main():
     bad = 0

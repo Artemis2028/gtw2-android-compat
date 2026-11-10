@@ -14,3 +14,7 @@ src/local.properties
 src/decompile/.tools/
 src/signing/*.keystore
 src/signing/*.jks
+port/.gradle/
+port/build/
+port/*/build/
+port/local.properties

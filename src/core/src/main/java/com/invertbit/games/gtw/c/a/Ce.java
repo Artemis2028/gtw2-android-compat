@@ -8,7 +8,7 @@ public final class Ce extends com.invertbit.games.gtw.c.a.Cc {
     public Ce(com.invertbit.games.gtw.b.Cf cf, com.invertbit.games.gtw.b.e.Cg cg, com.badlogic.gdx.graphics.Cb cb) {
         super(240, 120, cf.e, cg, cb);
         this.V = cf;
-        this.V.h = com.invertbit.games.gtw.b.e.Cc.a(com.invertbit.games.gtw.b.Cf.Ib.valueOf(cf.e));
+        this.V.h = com.invertbit.games.gtw.nations.Nations.stats(cf);
         this.T = new com.badlogic.gdx.f.a.a.Cc(this.S, new com.badlogic.gdx.f.a.a.Cc.Ia(com.invertbit.games.gtw.b.d.Cj.a(this.Q), this.R));
         this.T.i();
         c(this.T).a((float) this.O).m().h().g();

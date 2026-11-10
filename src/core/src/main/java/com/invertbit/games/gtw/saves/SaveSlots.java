@@ -67,9 +67,9 @@ public final class SaveSlots {
         if (!p.a("player.0")) {
             return name(slot) + ": empty";
         }
-        StringBuilder sb = new StringBuilder(name(slot)).append(": ").append(p.c("player.0"));
+        StringBuilder sb = new StringBuilder(name(slot)).append(": ").append(p.c("player.0").replace('_', ' '));
         if (p.a("player.1")) {
-            sb.append(" vs ").append(p.c("player.1"));
+            sb.append(" vs ").append(p.c("player.1").replace('_', ' '));
         }
         sb.append("  DEFCON ").append(p.b("defcon"));
         sb.append("  ").append(level(slot).name());

@@ -85,7 +85,7 @@ public final class Cd extends com.invertbit.games.gtw.b.d.Cb {
 
     @Override // com.invertbit.games.gtw.b.d.Cb
     public final void a(com.invertbit.games.gtw.b.Ca ca) {
-        com.badlogic.gdx.graphics.a.Cg cg = new com.badlogic.gdx.graphics.a.Cg(this.d.get(com.invertbit.games.gtw.b.a.Ca.Ia.valueOf(ca.c.name().toLowerCase() + "bomber")));
+        com.badlogic.gdx.graphics.a.Cg cg = new com.badlogic.gdx.graphics.a.Cg(this.d.get(com.invertbit.games.gtw.nations.Nations.bomber(ca.c)));
         cg.f.a(-15.0f, 0.0f, -19.0f);
         cg.g = ca;
         cg.f.b(ca.b);

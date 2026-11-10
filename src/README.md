@@ -31,8 +31,14 @@ next to the original and the compat build.
 | `decompile/` | Scripts that regenerate all of the above from the APK. |
 
 Native libraries: 32-bit (`armeabi`, `armeabi-v7a`, `x86`) are copied from the original APK
-(libGDX 1.7.0); 64-bit (`arm64-v8a`, `x86_64`) come from Maven Central libGDX 1.9.4, same as
-the compat build.
+(libGDX 1.7.0, 4 KB ELF pages; 16 KB-page devices are 64-bit and will not load them).
+64-bit `libgdx.so` still comes from Maven libGDX **1.9.4** (JNI-compatible with the
+obfuscated 1.7.0 Java: it still exports `AndroidGL20_*` and the old `Matrix4` overloads).
+The arm64 1.9.4 `libgdx.so` already has 64 KB LOAD alignment (compatible with 16 KB pages);
+the x86_64 1.9.4 `libgdx.so` is still 4 KB. 64-bit `libgdx-freetype.so` comes from Maven
+libGDX **1.14.2** (16 KB LOAD alignment, JNI a superset of 1.9.4). Natives are packaged
+uncompressed (`extractNativeLibs=false`, `useLegacyPackaging false`) so AGP 8.5+ can
+`zipalign -P 16` them.
 
 ## Names
 The original was obfuscated by ProGuard, so names are single letters. The game's classes
@@ -49,13 +55,18 @@ Handy anchors:
 - `com.badlogic.gdx.math.Ck` = `Vector2`, `Cl` = `Vector3`, `Cj` = `Vector`; `com.badlogic.gdx.graphics.Cm` = `Pixmap`
 - `com.badlogic.gdx.f.a` = scene2d, `com.badlogic.gdx.f.a.a` = scene2d.ui (`Ce` = `Table`)
 
-## Why libGDX is not a Maven dependency (yet)
+## Why libGDX is not a Maven Java dependency (yet)
 The game calls libGDX through ProGuard-obfuscated names (`com.badlogic.gdx.utils.a` is `Array`,
 and so on), and ProGuard also merged and shrank libGDX methods. Swapping in stock
-`com.badlogicgames.gdx:gdx:1.9.x` means mapping every libGDX class, method and field the game uses
-back to its real name and rewriting those call sites. That work is not done yet. Until then, the
-game compiles against the exact libGDX bytecode it shipped with, which keeps its behaviour
-identical. See "Next steps".
+`com.badlogicgames.gdx:gdx:1.14.2` (or 1.13.x) means mapping every libGDX class, method and field
+the game uses back to its real name and rewriting those call sites. That work is not done yet.
+Until then, the game compiles against the exact libGDX 1.7.0 bytecode it shipped with.
+
+Natives are a separate constraint: libGDX 1.13.0+ `.so` files are 16 KB page-aligned, but they
+dropped the `AndroidGL20_*` JNI and the old `Matrix4` overload symbols that the 1.7.0 Java
+backend still calls. Using those newer `libgdx.so` files without first moving the Java side
+onto the real API would `UnsatisfiedLinkError` on the first GL call. FreeType's JNI did not
+lose symbols, so `libgdx-freetype.so` is already on 1.14.2. See "Next steps".
 
 ## How it was produced (`decompile/import.sh`)
 1. apktool decodes the smali. `smali_rename.py` renames classes, restores enum-constant names,
@@ -79,7 +90,11 @@ Runtime decompile bugs (compiled fine, but behaved differently from the original
 - `b/a/Ca.a(String)`: jadx dropped the exit of a `while (true)` loop, so the loading screen hung (GL thread at 100%).
 - `gtw/c/a/Cc`, `gtw/c/a/Ce` (game buttons): dropped `int`->`float` casts made `Cell.width(float)` resolve to `Cell.colspan(int)`, so every button was laid out wrong.
 - `gtw/c/a/Cf` (battle HUD): a `switch` on nation was emptied (USA/RUSSIA/CHINA colours).
+- `gtw/c/Cw` (arsenal screen): jadx dropped the `break` after the BOMBER case's inner switch, so it fell through to SUBMARINE and every side's bomber screen showed a submarine. The icon choice is now `Cw.icon(row, side)`.
 - `gtw/b/d/Cb`: after the search loop the found render instance was overwritten with `null`, so destroyed units were never removed from the render list.
+- `backends.android.a.Cg` (libGDX 1.7.0 `GdxEglConfigChooser`, in the bundled jar): required an exact RGB565 match and returned `null` when the device only advertised RGBA8888 GLES2 configs (API 35+ emulators, including the user's Windows Android Studio AVD until it was switched to Software GLES). `Cb$Ib.createContext` then called `eglCreateContext` with that null config and threw `IllegalArgumentException`. Replaced by `android/src/main/java/com/badlogic/gdx/backends/android/a/Cg.java`, which falls back to RGBA8888 / RGB565 / any GLES2 config and never returns null when one exists. The fallback order lives in `gtw/egl/EglCompat` (JVM-tested). `:core`'s `filterGdxJar` task drops the original `a.Cg` from the jar so the replacement is the only copy. `Cb$Ib.createContext` already passed `{EGL_CONTEXT_CLIENT_VERSION (0x3098), 2, EGL_NONE}` and `EGL_NO_CONTEXT`.
+- `gtw/c/Caj.a(int,int)` (battle resize): only the overlay stage `t` (Resume / Quit) had its viewport updated. The running HUD stage `u` (Pause button, and the AI OFF badge while running) kept the construction-time viewport, so on a 2400x1080 phone the button was never drawn or hittable. Both stages are now resized via `BattleHudLayout.stagesToResize`. The Pause button stays 160x100 in the bottom-right of the 1920x1080 stretch world (away from Alaska, the US and the munitions counters); `PauseGatedInput` still eats taps on it so they do not reach the map. `BattleHudLayoutTest` checks the button is on-screen at 1080x2400, 1344x2992, 2856x1280 and 2400x1080.
+
 
 The last three were found with `decompile/check_sigdiff.py` (invoked method signatures per class,
 original smali vs. the built APK) and `decompile/check_constdiff.py` (literal constants per class).
@@ -146,7 +161,90 @@ so these changes would have to be re-applied after a re-import.
   - The level is stored in the save (`save.level`) and restored on Continue. Original saves use
     the Settings level, as they did before.
 
+### More playable sides: Europe, Africa, South America
+
+The original game has three sides (`a/Ci.Ia`: USA, RUSSIA, CHINA). Everything that differed per
+side was hardcoded in about ten switch statements and if-chains: border, unit and HUD colours, bomber
+model, home region, the alliance table and the pick-screen previews. All of these now go through
+`gtw/nations/Nations.java`, and the pick screens share `gtw/nations/NationPicker.java`.
+
+**How a side is modelled.** A side is one *home region* of the map (`b/Cf.Ib`; outline and
+unit-placement rects in `assets/world.svg`) plus an alliance table (`b/e/Cc`: which other regions
+it may ally with at which DEFCON). A region's profile is (silos, submarines, population/cities),
+e.g. USA/Russia/China (30, 26, 6). Cities, silos and subs are deployed on a 48-unit grid inside
+the region's rects, and the AI (`a/Ca`, `b/e/Ca`) is side-agnostic.
+
+**Added sides.** Each uses a region that already has a real outline in world.svg:
+
+| Side | Home region (as drawn on the map) | Profile | Real cities |
+|---|---|---|---|
+| EUROPE | `europe`: Cold War European NATO (UK, Iceland, Norway, Denmark, Benelux, West Germany, France, Italy, Portugal, Spain, Greece, Turkey). Non-NATO Europe is `easteurope`. | 30/26/6 | London, Paris, Madrid, Lisbon, Rome, Bonn |
+| AFRICA | `africa`: central and southern Africa below ~5°N, plus Madagascar | 30/26/6 | Kinshasa, Lubumbashi, Nairobi, Dar es Salaam, Johannesburg, Cape Town |
+| SOUTH AMERICA | `brazil` + `chile` (whole continent; chile now has an outline for non-Brazil SA) | 30/26/6 on brazil (+ chile's ordinary stats) | São Paulo, Buenos Aires, Santiago, Lima, Bogotá, Caracas |
+
+* **Arsenal.** When a new side owns its own home region it gets the superpower profile (30, 26, 6),
+  the same as USA/Russia/China. As somebody else's ally the region keeps its original, smaller
+  profile, so games between the original three are unchanged.
+* **Alliances.** New sides may ally with every non-superpower region except their own home from
+  DEFCON 0, and with USA, Russia and China from DEFCON 9 (the original sides' thresholds).
+  `sahara`, `egipt`, `chile`, etc. stay ordinary alliable countries, like Canada/Mexico for the USA.
+* **Cities are approximate.** The original sides place cities randomly on the grid. The new sides
+  place their six cities at real positions, projected with a least-squares fit of the map
+  (x = 1440.5 + 8.069·lon, z = 963.7 − 10.854·lat; typical error about 1°, worst around 2–3°).
+  Coastal cities were nudged up to 12 map units inland when the rough coastline put them in the
+  sea. `NationsTest` checks every city against the real outline in world.svg.
+* **Looks.** Colours are violet (Europe), yellow (Africa) and pink (South America). There are only
+  three bomber models, so new sides reuse one (Europe: US, Africa: Russian, South America: Chinese),
+  tinted in the side colour.
+* **Pick screens** show all six outlines in two rows of three, with two rows of buttons. The
+  opponent screen leaves the player's own slot empty.
+* **Not changed.** The tutorial (USA only) is unchanged. Saves store the side's `name()`
+  (e.g. `SOUTH_AMERICA`), so a save that uses a new side can't be opened by older builds.
+
+### Battle speed (1x / 2x / 4x)
+The running HUD has a toggle next to Pause that cycles 1x → 2x → 4x → 1x. `BattlePause.frame()`
+multiplies elapsed battle time (and AI turns) by that factor; while paused the multiplier is
+ignored and the sim stays frozen. A new battle restores the default speed from Settings
+(1x until changed). `BattlePauseTest` covers 1x/2x/4x, pause-at-4x, cycling, and start() reset.
+
+### Sound and settings
+The Settings screen (already home to Sound on/off and the default difficulty) now also has:
+
+- **Volume: 25% / 50% / 75% / 100%** — scales the original play loudness (button click 0.45,
+  impact 1.0). Sound off still mutes completely; the stored volume is kept for when sound
+  is turned back on.
+- **Speed: 1x / 2x / 4x** — the default battle-speed multiplier applied when a new match
+  starts (`BattlePause.setDefaultSpeed` / `setSpeed` before the HUD is built, then
+  `start()`). The in-battle HUD toggle still cycles the current match independently.
+
+Prefs live in the existing `GTWGame` file under `v1_sound` (original boolean), `v1_volume`
+(int percent) and `v1_speed` (int 1/2/4). `GameSettings` holds the values and the cycle
+rules (JVM-tested); `Cp` loads them at first sound init and plays at `scaledVolume(base)`.
+
+### Post-match stats
+The end-of-round summary (`gtw/c/Caf`, shown when any side is defeated) now reads a
+`MatchStats` snapshot per side instead of only remaining-loss MT. Every figure comes
+from data the sim already stores:
+
+- **Launches** — `Ci.f` / `Ci.a` (used / budget), the same pair `Ci.toString` prints
+- **Casualties** — `Ci.j.f.b()` mln, the population-loss total the old "Population" row showed
+- **Cities** — how many `b.Cd` units on that side have the sim's destroyed flag (`Ca.d`)
+- **Silos / Submarines / Bombers** — `Ci.j.g/i/h.b()` MT, unchanged
+
+There is no intercept counter in the sim, so the screen does not invent one.
+`MatchStatsTest` builds a side, sets those fields, and checks the labels.
+
 ## Next steps
 - Run it on a phone and compare behaviour with compat1.
 - Give the game's own classes readable names (add to `classes.tiny` or use a jadx mapping).
-- Map the bundled libGDX to real names, then move to stock libGDX 1.9.x or later from Maven, with matching natives on every ABI.
+- **Finish the libGDX Java swap** (blocked tonight by the ProGuard merge, not just class names):
+  1. Using `decompile/classes.tiny`, map every obfuscated libGDX type/method/field the game
+     calls onto the real 1.14.2 API (or keep a thin shim). ProGuard also merged and shrunk
+     methods, so this is more than a rename.
+  2. Replace `libs/gdx-1.7.0-invertbit.jar` with `com.badlogicgames.gdx:gdx:1.14.2` plus
+     `gdx-backend-android` and `gdx-freetype`. The hand-written `backends.android.a.Cg`
+     EGL fallback can be dropped if stock `GdxEglConfigChooser` already accepts RGBA8888.
+  3. Then ship matching 1.14.2 `libgdx.so` for every ABI (already 16 KB-aligned, including
+     x86_64). Until that Java move lands, x86_64 `libgdx.so` has to stay on 1.9.4 (4 KB
+     LOAD alignment) so the 1.7.0 AndroidGL20 JNI still resolves.
+- Play a match through to the summary screen on a phone (the new rows need a side to be defeated).

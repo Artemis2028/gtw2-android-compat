@@ -36,6 +36,25 @@ public final class Cw extends com.invertbit.games.gtw.c.Cb {
         return cw.v;
     }
 
+    /**
+     * Icon for an arsenal row. jadx dropped the {@code break} after the BOMBER case's inner switch
+     * (the smali jumps to the end), so BOMBER fell through to SUBMARINE and every side's bomber
+     * screen showed a submarine. The bomber icon now matches the side's in-battle bomber model.
+     */
+    public static com.invertbit.games.gtw.b.a.Ca.Ia icon(com.invertbit.games.gtw.a.Cj.Ia row, com.invertbit.games.gtw.a.Ci.Ia side) {
+        switch (row) {
+            case SILO:
+                return com.invertbit.games.gtw.b.a.Ca.Ia.silo;
+            case BOMBER:
+                return com.invertbit.games.gtw.nations.Nations.bomber(side);
+            case SUBMARINE:
+                return com.invertbit.games.gtw.b.a.Ca.Ia.submarine;
+            case CITY:
+            default:
+                return com.invertbit.games.gtw.b.a.Ca.Ia.city;
+        }
+    }
+
     public Cw(com.invertbit.games.gtw.Ca ca) {
         super(ca);
     }
@@ -49,35 +68,7 @@ public final class Cw extends com.invertbit.games.gtw.c.Cb {
             this.r = (com.invertbit.games.gtw.a.Cj) objArr[1];
             this.s = (com.invertbit.games.gtw.a.Cb) objArr[2];
             this.o.d();
-            switch (this.r.d) {
-                case CITY:
-                    cgB = this.m.b(com.invertbit.games.gtw.b.a.Ca.Ia.city);
-                    break;
-                case SILO:
-                    cgB = this.m.b(com.invertbit.games.gtw.b.a.Ca.Ia.silo);
-                    break;
-                case BOMBER:
-                    switch (this.p.a().e) {
-                        case USA:
-                            cgB = this.m.b(com.invertbit.games.gtw.b.a.Ca.Ia.usabomber);
-                            break;
-                        case RUSSIA:
-                            cgB = this.m.b(com.invertbit.games.gtw.b.a.Ca.Ia.russiabomber);
-                            break;
-                        case CHINA:
-                            cgB = this.m.b(com.invertbit.games.gtw.b.a.Ca.Ia.chinabomber);
-                            break;
-                        default:
-                            cgB = this.m.b(com.invertbit.games.gtw.b.a.Ca.Ia.usabomber);
-                            break;
-                    }
-                case SUBMARINE:
-                    cgB = this.m.b(com.invertbit.games.gtw.b.a.Ca.Ia.submarine);
-                    break;
-                default:
-                    cgB = this.m.b(com.invertbit.games.gtw.b.a.Ca.Ia.city);
-                    break;
-            }
+            cgB = this.m.b(icon(this.r.d, this.p.a().e));
             this.q = cgB;
             com.badlogic.gdx.f.a.a.Ce ce = new com.badlogic.gdx.f.a.a.Ce();
             ce.J = true;

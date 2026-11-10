@@ -12,7 +12,12 @@ public final class Ck implements com.invertbit.games.gtw.b.c.Ca {
 
     @Override // com.invertbit.games.gtw.b.c.Ca
     public final void a(long j, com.invertbit.games.gtw.b.d.Cl cl) {
-        com.invertbit.games.gtw.a.Ce ce = this.b;
+        clock(this.b, j);
+        this.a.a(j);
+    }
+
+    /** DEFCON countdown and HUD message timer, advanced by {@code j} ms of battle time. */
+    public static void clock(com.invertbit.games.gtw.a.Ce ce, long j) {
         if (ce.a()) {
             ce.d -= j / 1000.0f;
         }
@@ -23,7 +28,6 @@ public final class Ck implements com.invertbit.games.gtw.b.c.Ca {
                 ce.c.remove(0);
             }
         }
-        this.a.a(j);
     }
 
     @Override // com.invertbit.games.gtw.b.c.Ca

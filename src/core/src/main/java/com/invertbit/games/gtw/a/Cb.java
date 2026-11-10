@@ -115,7 +115,7 @@ public final class Cb {
     }
 
     public final void a(com.invertbit.games.gtw.b.Cf cf) {
-        com.invertbit.games.gtw.b.Cf.Ia iaA = com.invertbit.games.gtw.b.e.Cc.a(com.invertbit.games.gtw.b.Cf.Ib.valueOf(cf.e));
+        com.invertbit.games.gtw.b.Cf.Ia iaA = com.invertbit.games.gtw.nations.Nations.stats(cf);
         this.a += iaA.c;
         this.f.a(this.a * 5);
         this.b += iaA.a;

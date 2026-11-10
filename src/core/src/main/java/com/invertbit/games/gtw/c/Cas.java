@@ -22,14 +22,18 @@ public final class Cas extends com.invertbit.games.gtw.c.Cb {
         com.badlogic.gdx.f.a.a.Cc.Ia ia2 = new com.badlogic.gdx.f.a.a.Cc.Ia(com.invertbit.games.gtw.b.d.Cj.a(com.invertbit.games.gtw.b.e.Cg.s72), com.invertbit.games.gtw.b.e.Cg.s30.h);
         ce.c(new com.badlogic.gdx.f.a.a.Cc("Settings", ia)).n().h().i().d(50.0f);
         ce.i();
-        com.badlogic.gdx.f.a.a.Cc cc = new com.badlogic.gdx.f.a.a.Cc("Sound on", ia2);
-        if (com.invertbit.games.gtw.b.d.Cp.a().c) {
-            cc.a("Sound on");
-        } else {
-            cc.a("Sound off");
-        }
+        com.invertbit.games.gtw.b.d.Cp.a();
+        com.badlogic.gdx.f.a.a.Cc cc = new com.badlogic.gdx.f.a.a.Cc(com.invertbit.games.gtw.settings.GameSettings.get().soundLabel(), ia2);
         cc.a(new com.invertbit.games.gtw.c.Cat(this, cc));
         ce.c(cc).m().h().i().d(30.0f);
+        ce.i();
+        com.badlogic.gdx.f.a.a.Cc vol = new com.badlogic.gdx.f.a.a.Cc(com.invertbit.games.gtw.settings.GameSettings.get().volumeLabel(), ia2);
+        vol.a(new com.invertbit.games.gtw.c.SettingsVolumeClick(vol));
+        ce.c(vol).m().h().i().d(30.0f);
+        ce.i();
+        com.badlogic.gdx.f.a.a.Cc spd = new com.badlogic.gdx.f.a.a.Cc(com.invertbit.games.gtw.settings.GameSettings.get().defaultSpeedLabel(), ia2);
+        spd.a(new com.invertbit.games.gtw.c.SettingsSpeedClick(spd));
+        ce.c(spd).m().h().i().d(30.0f);
         ce.i();
         com.badlogic.gdx.f.a.a.Cc cc2 = new com.badlogic.gdx.f.a.a.Cc("", ia2);
         cc2.a("Level: " + com.invertbit.games.gtw.Cb.b().d().name());
@@ -69,10 +73,10 @@ public final class Cas extends com.invertbit.games.gtw.c.Cb {
     }
 
     static boolean e() {
-        com.invertbit.games.gtw.b.d.Cp cpA = com.invertbit.games.gtw.b.d.Cp.a();
-        cpA.c = !com.invertbit.games.gtw.b.d.Cp.a().c;
-        com.invertbit.games.gtw.Cc.a().b.a("v1_sound", cpA.c);
-        com.invertbit.games.gtw.Cc.a().b();
-        return com.invertbit.games.gtw.b.d.Cp.a().c;
+        com.invertbit.games.gtw.settings.GameSettings gs = com.invertbit.games.gtw.settings.GameSettings.get();
+        boolean on = gs.toggleSound();
+        gs.saveSound();
+        com.invertbit.games.gtw.b.d.Cp.a().c = on;
+        return on;
     }
 }

@@ -47,15 +47,7 @@ public final class Cg extends com.invertbit.games.gtw.b.d.Cb {
         if (this.a != null) {
             for (com.badlogic.gdx.graphics.a.Cg cg : this.a) {
                 com.invertbit.games.gtw.b.Cf cf2 = (com.invertbit.games.gtw.b.Cf) cg.g;
-                if (com.invertbit.games.gtw.a.Ci.Ia.RUSSIA.equals(cf2.c)) {
-                    cf.a(cg, ca.a(com.invertbit.games.gtw.d.Ca.Ia.russiaBorder));
-                } else if (com.invertbit.games.gtw.a.Ci.Ia.USA.equals(cf2.c)) {
-                    cf.a(cg, ca.a(com.invertbit.games.gtw.d.Ca.Ia.usaBorder));
-                } else if (com.invertbit.games.gtw.a.Ci.Ia.CHINA.equals(cf2.c)) {
-                    cf.a(cg, ca.a(com.invertbit.games.gtw.d.Ca.Ia.chinaBorder));
-                } else {
-                    cf.a(cg, ca.a(com.invertbit.games.gtw.d.Ca.Ia.defaultBorder));
-                }
+                cf.a(cg, ca.a(com.invertbit.games.gtw.nations.Nations.border(cf2.c)));
             }
         }
     }

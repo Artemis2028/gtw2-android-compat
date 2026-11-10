@@ -50,7 +50,7 @@ final /* synthetic */ class Cd {
         } catch (java.lang.NoSuchFieldError e11) {
         }
         try {
-            a[com.invertbit.games.gtw.b.Cf.Ib.egipt.ordinal()] = 12;
+            a[com.invertbit.games.gtw.b.Cf.Ib.egypt.ordinal()] = 12;
         } catch (java.lang.NoSuchFieldError e12) {
         }
         try {
@@ -60,10 +60,6 @@ final /* synthetic */ class Cd {
         try {
             a[com.invertbit.games.gtw.b.Cf.Ib.middleeast.ordinal()] = 14;
         } catch (java.lang.NoSuchFieldError e14) {
-        }
-        try {
-            a[com.invertbit.games.gtw.b.Cf.Ib.kazakhstan.ordinal()] = 15;
-        } catch (java.lang.NoSuchFieldError e15) {
         }
         try {
             a[com.invertbit.games.gtw.b.Cf.Ib.india.ordinal()] = 16;
@@ -82,7 +78,7 @@ final /* synthetic */ class Cd {
         } catch (java.lang.NoSuchFieldError e19) {
         }
         try {
-            a[com.invertbit.games.gtw.b.Cf.Ib.japan.ordinal()] = 20;
+            a[com.invertbit.games.gtw.b.Cf.Ib.pacific.ordinal()] = 20;
         } catch (java.lang.NoSuchFieldError e20) {
         }
     }

@@ -48,6 +48,14 @@ public class Cc extends com.badlogic.gdx.f.a.a.Ce {
         this(i, i2, str, cg, cb, new com.badlogic.gdx.graphics.Cb(0.0f, 0.52f, 1.0f, 0.3f));
     }
 
+    /** Update the visible label (used by the 1x/2x/4x speed toggle). */
+    public void setCaption(java.lang.String str) {
+        this.S = str;
+        if (this.T != null) {
+            this.T.a(str);
+        }
+    }
+
     protected void l() {
         this.T = new com.badlogic.gdx.f.a.a.Cc(this.S, new com.badlogic.gdx.f.a.a.Cc.Ia(com.invertbit.games.gtw.b.d.Cj.a(this.Q), this.R));
         this.T.i();
