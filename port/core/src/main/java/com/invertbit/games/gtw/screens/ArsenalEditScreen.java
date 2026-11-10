@@ -3,6 +3,10 @@ package com.invertbit.games.gtw.screens;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -12,10 +16,14 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.invertbit.games.gtw.GtwGame;
 import com.invertbit.games.gtw.audio.Sounds;
+import com.invertbit.games.gtw.map.ObjectGlyphs;
+import com.invertbit.games.gtw.nations.Nations;
 import com.invertbit.games.gtw.sim.Arsenal;
 import com.invertbit.games.gtw.sim.Match;
 import com.invertbit.games.gtw.sim.WeaponKind;
 import com.invertbit.games.gtw.sim.YieldRow;
+
+import java.io.InputStream;
 
 /**
  * Yield editor (original {@code c.Cw}): spend/refund 5 MT (and 10/15 for silos)
@@ -27,6 +35,9 @@ public class ArsenalEditScreen extends ScreenAdapter {
     private final Match match;
     private final YieldRow row;
     private final Stage stage;
+    private final Actor glyphSlot = new Actor();
+    private ObjectGlyphs glyphs;
+    private ObjectGlyphs.Kind glyphKind;
     private Label pointsLabel;
     private Label slotsLabel;
     private Label amount5;
@@ -38,6 +49,18 @@ public class ArsenalEditScreen extends ScreenAdapter {
         this.match = match;
         this.row = row;
         this.stage = new Stage(new StretchViewport(GtwGame.UI_WIDTH, GtwGame.UI_HEIGHT), game.batch);
+        glyphKind = ObjectGlyphs.forWeapon(row.kind, match.player().side);
+        InputStream in = null;
+        try {
+            in = Gdx.files.internal("objects.svg").read();
+            glyphs = ObjectGlyphs.load(in);
+        } catch (Exception e) {
+            Gdx.app.error("GTW", "objects.svg", e);
+        } finally {
+            if (in != null) {
+                try { in.close(); } catch (Exception ignored) {}
+            }
+        }
         build();
         refresh();
     }
@@ -46,7 +69,9 @@ public class ArsenalEditScreen extends ScreenAdapter {
         Table root = new Table();
         root.setFillParent(true);
         root.defaults().pad(8f);
-        root.add(new Label(titleFor(row.kind), game.skin, "title")).colspan(5).padBottom(12f);
+        root.add(new Label(titleFor(row.kind), game.skin, "title")).colspan(5).padBottom(8f);
+        root.row();
+        root.add(glyphSlot).size(220f, 140f).colspan(5).padBottom(8f);
         root.row();
         pointsLabel = new Label("", game.skin);
         slotsLabel = new Label("", game.skin);
@@ -160,6 +185,37 @@ public class ArsenalEditScreen extends ScreenAdapter {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         stage.act(delta);
         stage.draw();
+        drawGlyph();
+    }
+
+    private void drawGlyph() {
+        if (glyphs == null || glyphKind == null) {
+            return;
+        }
+        float[] rgb = Nations.rgb(match.player().side);
+        float[] off = ObjectGlyphs.offset(glyphKind);
+        Vector2 centre = new Vector2(glyphSlot.getWidth() * 0.5f, glyphSlot.getHeight() * 0.5f);
+        glyphSlot.localToStageCoordinates(centre);
+        float scale = 2.2f;
+        game.shapes.setProjectionMatrix(stage.getViewport().getCamera().combined);
+        game.shapes.begin(ShapeRenderer.ShapeType.Line);
+        game.shapes.setColor(rgb[0], rgb[1], rgb[2], 1f);
+        for (java.util.List<Vector3> path : glyphs.paths(glyphKind)) {
+            if (path.isEmpty()) {
+                continue;
+            }
+            Vector3 prev = path.get(0);
+            for (int i = 1; i < path.size(); i++) {
+                Vector3 next = path.get(i);
+                float x0 = centre.x + (prev.x + off[0]) * scale;
+                float y0 = centre.y - (prev.z + off[1]) * scale;
+                float x1 = centre.x + (next.x + off[0]) * scale;
+                float y1 = centre.y - (next.z + off[1]) * scale;
+                game.shapes.line(x0, y0, x1, y1);
+                prev = next;
+            }
+        }
+        game.shapes.end();
     }
 
     @Override public void resize(int width, int height) { stage.getViewport().update(width, height, true); }

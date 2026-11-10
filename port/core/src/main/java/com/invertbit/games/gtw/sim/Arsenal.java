@@ -164,7 +164,10 @@ public final class Arsenal {
     public void add(Region region) {
         RegionStats stats = Nations.stats(region);
         populationCount += stats.cities;
-        city.add5(populationCount * 5);
+        // Each region contributes its own city slots. Using the running
+        // populationCount here counted the first home again when a second
+        // home (chile on SOUTH_AMERICA, alaska on USA) was added.
+        city.add5(stats.cities * 5);
         siloCount += stats.silos;
         submarineCount += stats.submarines;
         maxPoints = (stats.submarines * 5) + (stats.silos * 5) + maxPoints;

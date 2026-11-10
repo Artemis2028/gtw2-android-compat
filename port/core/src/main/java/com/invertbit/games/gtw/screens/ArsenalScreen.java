@@ -2,7 +2,6 @@ package com.invertbit.games.gtw.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
@@ -20,7 +19,6 @@ import com.invertbit.games.gtw.map.ObjectGlyphs;
 import com.invertbit.games.gtw.nations.Nations;
 import com.invertbit.games.gtw.sim.Arsenal;
 import com.invertbit.games.gtw.sim.Match;
-import com.invertbit.games.gtw.sim.WeaponKind;
 import com.invertbit.games.gtw.sim.YieldRow;
 
 import java.io.InputStream;
@@ -81,12 +79,14 @@ public class ArsenalScreen extends ScreenAdapter {
     }
 
     private Table card(final String title, ObjectGlyphs.Kind kind, final YieldRow row, String slots) {
-        Table card = new Table();
+        // TextButton gives the whole 520x340 cell a hittable background, so taps
+        // on the glyph / empty padding open the editor, not just the labels.
+        TextButton card = new TextButton("", game.skin);
+        card.clearChildren();
         Label name = new Label(title, game.skin, "title");
         card.add(name).padTop(8f);
         card.row();
-        // Room for the objects.svg outline drawn on top of the card.
-        card.add().height(160f);
+        card.add().height(160f).growX();
         card.row();
         Label sub = new Label(slots, game.skin);
         card.add(sub).padBottom(12f);
@@ -101,17 +101,6 @@ public class ArsenalScreen extends ScreenAdapter {
             cards[cardIndex++] = card;
         }
         return card;
-    }
-
-    private static String iconCaption(ObjectGlyphs.Kind kind) {
-        switch (kind) {
-            case city: return "[ city ]";
-            case silo: return "[ silo ]";
-            case usabomber:
-            case russiabomber:
-            case chinabomber: return "[ bomber ]";
-            default: return "[ sub ]";
-        }
     }
 
     private TextButton button(String caption, final Runnable action) {
