@@ -310,7 +310,9 @@ public class BattleScreen extends ScreenAdapter {
                 }
             }
         }
-        return Nations.ownerOf(name);
+        // No Nations.ownerOf fallback: a home that is not in this match (e.g. USA /
+        // Alaska in SOUTH AMERICA vs RUSSIA) stays unowned gray, as in the original.
+        return null;
     }
 
     private void drawUnits() {
@@ -318,7 +320,7 @@ public class BattleScreen extends ScreenAdapter {
         for (Player player : match.sides) {
             float[] rgb = Nations.rgb(player.side);
             for (com.invertbit.games.gtw.sim.MapUnit unit : player.units) {
-                if (unit.position == null || unit instanceof Region) {
+                if (unit.position == null || unit instanceof Region || !battle.visible(unit)) {
                     continue;
                 }
                 float x = unit.position.x;
@@ -338,7 +340,11 @@ public class BattleScreen extends ScreenAdapter {
                         game.shapes.rect(x - 6f, y - 6f, 12f, 12f);
                     } else if (launcher.kind == WeaponKind.BOMBER) {
                         game.shapes.triangle(x, y + 9f, x - 8f, y - 7f, x + 8f, y - 7f);
+                    } else if (launcher.surfaced) {
+                        game.shapes.circle(x, y, 7f, 8);
                     } else {
+                        // Own submerged sub: drawn dimmer (original always shows own subs).
+                        game.shapes.setColor(rgb[0] * 0.5f, rgb[1] * 0.5f, rgb[2] * 0.5f, 1f);
                         game.shapes.circle(x, y, 7f, 8);
                     }
                 }
@@ -346,16 +352,35 @@ public class BattleScreen extends ScreenAdapter {
         }
         game.shapes.setColor(1f, 0.85f, 0.2f, 1f);
         for (Missile missile : battle.missiles) {
-            game.shapes.circle(missile.position.x, -missile.position.z, 5f, 8);
+            game.shapes.circle(Missile.wrapX(missile.position.x), -missile.position.z, 5f, 8);
         }
         game.shapes.end();
 
         game.shapes.begin(ShapeRenderer.ShapeType.Line);
         game.shapes.setColor(1f, 0.6f, 0.1f, 1f);
         for (Missile missile : battle.missiles) {
-            game.shapes.line(missile.start.x, -missile.start.z, missile.position.x, -missile.position.z);
+            drawTrail(missile);
         }
         game.shapes.end();
+    }
+
+    private final Vector3 trailA = new Vector3();
+    private final Vector3 trailB = new Vector3();
+
+    /** Cubic Bézier trail from launch to the missile's current point, sampled in 24 steps. */
+    private void drawTrail(Missile missile) {
+        float t = missile.duration <= 0f ? 1f : Math.min(1f, missile.elapsed / missile.duration);
+        int steps = 24;
+        missile.bezier(0f, trailA);
+        for (int i = 1; i <= steps; i++) {
+            missile.bezier(t * i / steps, trailB);
+            float ax = Missile.wrapX(trailA.x);
+            float bx = Missile.wrapX(trailB.x);
+            if (Math.abs(bx - ax) < 1440f) {
+                game.shapes.line(ax, -trailA.z, bx, -trailB.z);
+            }
+            trailA.set(trailB);
+        }
     }
 
     private void updateLabels() {
@@ -365,8 +390,8 @@ public class BattleScreen extends ScreenAdapter {
                 ? String.format("  START IN %.1fs", Math.max(0f, battle.clock.countdown))
                 : "";
         String over = battle.finished ? "  GAME OVER" : "";
-        status.setText(you.side + " pop " + you.population + " wpn " + you.remainingWeapons
-                + "   vs   " + them.side + " pop " + them.population + " wpn " + them.remainingWeapons
+        status.setText(Nations.displayName(you.side) + " pop " + you.population + " wpn " + you.remainingWeapons
+                + "   vs   " + Nations.displayName(them.side) + " pop " + them.population + " wpn " + them.remainingWeapons
                 + "   [" + you.launchesUsed + "/" + you.launchBudget + "]" + countDown + over);
         if (!battle.clock.messages.isEmpty()) {
             ticker.setText(battle.clock.messages.get(0));

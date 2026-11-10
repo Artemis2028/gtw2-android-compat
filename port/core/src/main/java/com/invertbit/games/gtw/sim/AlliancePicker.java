@@ -1,5 +1,6 @@
 package com.invertbit.games.gtw.sim;
 
+import com.invertbit.games.gtw.nations.Nations;
 import com.invertbit.games.gtw.nations.RegionId;
 
 import java.util.ArrayList;
@@ -52,6 +53,53 @@ public final class AlliancePicker {
                 }
             }
         }
+    }
+
+
+    /**
+     * Regions that get a pick marker on the alliance map (original {@code c.Cp}):
+     * shown when {@code r < defcon} and the region is not already owned by either
+     * side and is not an opponent home. {@code r = player.countries - 1}.
+     */
+    public List<Region> eligible(Match match) {
+        List<Region> out = new ArrayList<Region>();
+        int r = match.alliesPicked();
+        if (r >= match.defcon) {
+            return out;
+        }
+        for (RegionId id : tables.offer(match.player().side, match.defcon)) {
+            Region region = WorldRegions.get().get(id.name());
+            if (region != null && canShow(match, region, r)) {
+                out.add(region);
+            }
+        }
+        return out;
+    }
+
+    private static boolean canShow(Match match, Region region, int r) {
+        if (r >= match.defcon) {
+            return false;
+        }
+        if (match.player().owns(region) || match.opponent().owns(region)) {
+            return false;
+        }
+        return !Nations.isHome(match.opponent().side, region.name);
+    }
+
+    /**
+     * Manual pick (original {@code c.Cr}): reject if {@code r > defcon} or the
+     * player already owns the region; otherwise add it (which increments {@code r}).
+     */
+    public boolean tryPick(Match match, Region region) {
+        if (region == null) {
+            return false;
+        }
+        int r = match.alliesPicked();
+        if (r > match.defcon || match.player().owns(region)) {
+            return false;
+        }
+        match.player().add(region);
+        return true;
     }
 
     private void fillRow(YieldRow row, int mt) {

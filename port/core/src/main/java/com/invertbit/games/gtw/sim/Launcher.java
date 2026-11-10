@@ -17,6 +17,15 @@ public final class Launcher extends MapUnit {
     public final boolean playerOwned;
     /** Subs start submerged ({@code j = false}) and cannot be targeted until surfaced. */
     public boolean surfaced;
+    /** Bomber sortie: fly here at {@link #BOMBER_SPEED} world-units/sec, then strike. */
+    public MapUnit destination;
+    /** Bomber has struck and left the map. */
+    public boolean spent;
+    public final Vector3 moveFrom = new Vector3();
+    public final Vector3 moveTo = new Vector3();
+    public float moveElapsed;
+    public float moveDuration;
+    public static final float BOMBER_SPEED = 30.0f;
 
     public Launcher(Vector3 position, WeaponKind kind, int yield, int ammo, float speedFactor,
                     boolean playerOwned) {
@@ -62,5 +71,42 @@ public final class Launcher extends MapUnit {
     /** Bombers ({@code b.Cc.a()}) report ready-to-clear after a single launch. */
     public boolean clearsSelectionAfterLaunch() {
         return kind == WeaponKind.BOMBER;
+    }
+
+    public boolean isMoving() {
+        return destination != null;
+    }
+
+    public void beginMoveTo(MapUnit target) {
+        this.destination = target;
+        this.moveElapsed = 0f;
+        this.moveFrom.set(position);
+        this.moveTo.set(target.position);
+        Missile.wrapShortest(moveFrom, moveTo);
+        float dist = (float) Math.hypot(moveTo.x - moveFrom.x, moveTo.z - moveFrom.z);
+        this.moveDuration = Math.max(0.05f, dist / BOMBER_SPEED);
+    }
+
+    /**
+     * Advance a bomber sortie. Returns the target on arrival (caller should
+     * resolve the strike), or null while still en route.
+     */
+    public MapUnit advanceMove(float seconds) {
+        if (destination == null) {
+            return null;
+        }
+        moveElapsed += seconds;
+        float t = moveDuration <= 0f ? 1f : Math.min(1f, moveElapsed / moveDuration);
+        position.x = Missile.wrapX(moveFrom.x + (moveTo.x - moveFrom.x) * t);
+        position.y = 0f;
+        position.z = moveFrom.z + (moveTo.z - moveFrom.z) * t;
+        if (t >= 1f) {
+            MapUnit hit = destination;
+            destination = null;
+            position.x = Missile.wrapX(moveTo.x);
+            position.z = moveTo.z;
+            return hit;
+        }
+        return null;
     }
 }

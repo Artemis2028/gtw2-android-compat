@@ -6,6 +6,7 @@ import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
 import com.invertbit.games.gtw.AiOff;
 import com.invertbit.games.gtw.GtwGame;
+import com.invertbit.games.gtw.QuickDefeat;
 
 public class AndroidLauncher extends AndroidApplication {
 
@@ -13,6 +14,7 @@ public class AndroidLauncher extends AndroidApplication {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         AiOff.set(readAiOff(getIntent()));
+        QuickDefeat.set(readQuickDefeat(getIntent()));
         requestWindowFeature(1);
         getWindow().setFlags(1024, 1024);
         getWindow().clearFlags(2048);
@@ -27,6 +29,13 @@ public class AndroidLauncher extends AndroidApplication {
         super.onNewIntent(intent);
         setIntent(intent);
         AiOff.set(readAiOff(intent));
+        QuickDefeat.set(readQuickDefeat(intent));
+    }
+
+    /** Debug builds only: {@code --ez quick_defeat true} ends each round right after the countdown. */
+    boolean readQuickDefeat(android.content.Intent intent) {
+        boolean debuggable = (getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+        return debuggable && intent != null && intent.getBooleanExtra("quick_defeat", false);
     }
 
     static boolean readAiOff(android.content.Intent intent) {

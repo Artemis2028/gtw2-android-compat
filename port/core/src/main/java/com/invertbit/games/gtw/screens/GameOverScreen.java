@@ -13,6 +13,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.invertbit.games.gtw.GtwGame;
 import com.invertbit.games.gtw.audio.Sounds;
+import com.invertbit.games.gtw.saves.SaveSlots;
 import com.invertbit.games.gtw.sim.Match;
 import com.invertbit.games.gtw.sim.Player;
 import com.invertbit.games.gtw.stats.MatchStats;
@@ -22,9 +23,11 @@ public class GameOverScreen extends ScreenAdapter {
 
     private final GtwGame game;
     private final Stage stage;
+    private final Match match;
 
     public GameOverScreen(GtwGame game, Match match) {
         this.game = game;
+        this.match = match;
         this.stage = new Stage(new StretchViewport(GtwGame.UI_WIDTH, GtwGame.UI_HEIGHT), game.batch);
         Table root = new Table();
         root.setFillParent(true);
@@ -52,13 +55,27 @@ public class GameOverScreen extends ScreenAdapter {
             root.row();
         }
 
-        root.add(button("Back to menu", new Runnable() {
+        // Original c.Caf: "<" when the player was defeated, ">" otherwise; both
+        // run the same continue (DEFCON++ only if not defeated, reset, save, prep).
+        final boolean playerDefeated = match.player().defeated();
+        root.add(button(playerDefeated ? "<" : ">", new Runnable() {
             @Override public void run() {
-                game.setScreen(new MenuScreen(game));
+                nextRound();
             }
-        })).colspan(2).size(480f, 120f).padTop(16f);
+        })).colspan(2).size(150f, 120f).padTop(16f);
 
         stage.addActor(root);
+    }
+
+    /** Original {@code c.Caf.a}: increment unless defeated, reset every side, save, prep. */
+    private void nextRound() {
+        match.nextRound();
+        try {
+            SaveSlots.saveCurrent(match);
+        } catch (RuntimeException e) {
+            Gdx.app.error("GTW", "save", e);
+        }
+        game.setScreen(new PrepScreen(game, match));
     }
 
     private void addRow(Table root, String label, String value) {
@@ -79,7 +96,19 @@ public class GameOverScreen extends ScreenAdapter {
         return button;
     }
 
-    @Override public void show() { Gdx.input.setInputProcessor(stage); }
+    @Override
+    public void show() {
+        Gdx.input.setInputProcessor(new com.badlogic.gdx.InputMultiplexer(stage, new com.badlogic.gdx.InputAdapter() {
+            @Override
+            public boolean keyDown(int keycode) {
+                if (keycode == com.badlogic.gdx.Input.Keys.BACK || keycode == com.badlogic.gdx.Input.Keys.ESCAPE) {
+                    game.setScreen(new MenuScreen(game));
+                    return true;
+                }
+                return false;
+            }
+        }));
+    }
 
     @Override
     public void render(float delta) {
@@ -93,9 +122,7 @@ public class GameOverScreen extends ScreenAdapter {
 
     @Override
     public void hide() {
-        if (Gdx.input.getInputProcessor() == stage) {
-            Gdx.input.setInputProcessor(null);
-        }
+        Gdx.input.setInputProcessor(null);
     }
 
     @Override public void dispose() { stage.dispose(); }

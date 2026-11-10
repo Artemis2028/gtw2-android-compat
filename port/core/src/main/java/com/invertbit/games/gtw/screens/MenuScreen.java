@@ -33,12 +33,12 @@ public class MenuScreen extends ScreenAdapter {
 
         root.add(button("New game", new Runnable() {
             @Override public void run() {
-                game.setScreen(new SetupScreen(game));
+                game.setScreen(new SlotScreen(game, true));
             }
         })).size(620f, 200f);
         root.add(button("Continue", new Runnable() {
             @Override public void run() {
-                game.setScreen(new SlotScreen(game));
+                game.setScreen(new SlotScreen(game, false));
             }
         })).size(620f, 200f);
         root.row();

@@ -12,6 +12,8 @@ public final class Battle implements BattlePause.Sim {
     public final Match match;
     public final DefconClock clock = new DefconClock();
     public final List<Missile> missiles = new ArrayList<Missile>();
+    /** Bombers flying to their target (original {@code b.d.Cd}); not ICBMs, so not in {@link #missiles}. */
+    public final List<Launcher> sorties = new ArrayList<Launcher>();
     public Launcher selected;
     public boolean finished;
     /** Missiles that reached their target; the screen plays the impact sound when it grows. */
@@ -30,6 +32,9 @@ public final class Battle implements BattlePause.Sim {
 
     @Override
     public boolean over() {
+        if (com.invertbit.games.gtw.QuickDefeat.isOn() && !clock.countdownRunning()) {
+            match.opponent().markDefeated();
+        }
         for (Player player : match.sides) {
             if (player.defeated()) {
                 return true;
@@ -52,13 +57,32 @@ public final class Battle implements BattlePause.Sim {
     public void advance(long ms) {
         DefconClock.clock(clock, ms);
         float seconds = ms / 1000.0f;
-        Iterator<Missile> it = missiles.iterator();
-        while (it.hasNext()) {
-            Missile missile = it.next();
+        List<Missile> landed = new ArrayList<Missile>();
+        for (Missile missile : missiles) {
             if (missile.advance(seconds)) {
-                resolve(missile);
-                it.remove();
+                landed.add(missile);
             }
+        }
+        for (Missile missile : landed) {
+            // A missile can be dropped by an earlier impact this frame (its silo destroyed).
+            if (missiles.remove(missile)) {
+                resolve(missile.source, missile.target);
+            }
+        }
+        Iterator<Launcher> sortie = sorties.iterator();
+        List<Launcher> arrived = new ArrayList<Launcher>();
+        while (sortie.hasNext()) {
+            Launcher bomber = sortie.next();
+            MapUnit hit = bomber.advanceMove(seconds);
+            if (hit != null) {
+                arrived.add(bomber);
+                sortie.remove();
+                resolve(bomber, hit);
+            }
+        }
+        for (Launcher bomber : arrived) {
+            // Original b.d.Cd removes the bomber model once it has struck.
+            bomber.spent = true;
         }
         recountInFlight();
     }
@@ -154,6 +178,17 @@ public final class Battle implements BattlePause.Sim {
     }
 
     public void launch(Launcher source, MapUnit target) {
+        if (source.kind == WeaponKind.BOMBER) {
+            // Original b.d.Cd: the bomber itself flies to the target at 30 units/s.
+            source.ammo = 0;
+            source.beginMoveTo(target);
+            sorties.add(source);
+            return;
+        }
+        if (source.kind == WeaponKind.SUBMARINE) {
+            // Original b.d.Cq: firing surfaces the sub, so it becomes visible and targetable.
+            source.surfaced = true;
+        }
         source.ammo--;
         if (source.ammo < 0) {
             source.ammo = 0;
@@ -166,10 +201,8 @@ public final class Battle implements BattlePause.Sim {
         }
     }
 
-    private void resolve(Missile missile) {
+    private void resolve(Launcher source, MapUnit target) {
         impacts++;
-        MapUnit target = missile.target;
-        Launcher source = missile.source;
         Player shooter = ownerOf(source.owner);
         if (shooter != null) {
             shooter.remainingWeapons -= source.yield;
@@ -198,6 +231,15 @@ public final class Battle implements BattlePause.Sim {
         if (target instanceof Launcher && !target.destroyed) {
             Launcher hit = (Launcher) target;
             hit.destroyed = true;
+            if (hit.kind != WeaponKind.BOMBER) {
+                // Original b.d.Co.b: a destroyed silo/sub loses the warheads it still has in the air.
+                Iterator<Missile> drop = missiles.iterator();
+                while (drop.hasNext()) {
+                    if (drop.next().source == hit) {
+                        drop.remove();
+                    }
+                }
+            }
             Player victim = ownerOf(hit.owner);
             if (victim != null) {
                 int lost = hit.kind == WeaponKind.BOMBER ? hit.yield : hit.yield * Math.max(hit.ammo, 0);
@@ -223,7 +265,7 @@ public final class Battle implements BattlePause.Sim {
         float bestD = radius * radius;
         for (Player player : match.sides) {
             for (MapUnit unit : player.units) {
-                if (unit.destroyed || unit.position == null || unit instanceof Region) {
+                if (unit.destroyed || unit.position == null || unit instanceof Region || !visible(unit)) {
                     continue;
                 }
                 float dx = unit.position.x - x;
@@ -236,6 +278,24 @@ public final class Battle implements BattlePause.Sim {
             }
         }
         return best;
+    }
+
+    /**
+     * Drawn and pickable: spent bombers are gone; enemy subs show only once surfaced
+     * (original {@code b.d.Cq}: {@code j || i}).
+     */
+    public boolean visible(MapUnit unit) {
+        if (unit instanceof Launcher) {
+            Launcher launcher = (Launcher) unit;
+            if (launcher.spent) {
+                return false;
+            }
+            if (launcher.kind == WeaponKind.SUBMARINE && !launcher.surfaced
+                    && launcher.owner != match.player().side) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public String handleTap(float x, float z) {

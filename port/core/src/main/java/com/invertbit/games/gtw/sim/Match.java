@@ -34,6 +34,33 @@ public final class Match {
         return match;
     }
 
+    /** Original "Choose player" ({@code c.Cc}): a new match, DEFCON 0, player side only. */
+    public static Match newGame(Side playerSide) {
+        Match match = new Match();
+        match.defcon = 0;
+        match.addSide(playerSide, true);
+        return match;
+    }
+
+    /**
+     * Original post-match continue ({@code c.Caf.a}): DEFCON goes up unless the player
+     * was defeated, then every side is reset for the next round.
+     */
+    public void nextRound() {
+        if (!player().defeated()) {
+            defcon++;
+        }
+        messages.clear();
+        for (Player side : sides) {
+            side.resetForNextRound();
+        }
+    }
+
+    /** Alliance picks still open for the player: original {@code r < c} with {@code r = countries - 1}. */
+    public int alliesPicked() {
+        return player().regionCount() - 1;
+    }
+
     public Player addSide(Side side, boolean human) {
         RegionId home = Nations.home(side);
         if (human) {

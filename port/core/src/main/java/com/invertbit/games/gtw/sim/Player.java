@@ -19,7 +19,7 @@ public final class Player {
     public int launchBudget;
     public Arsenal arsenal = new Arsenal();
     /** What this side lost in the match (original {@code Ci.j}); read by the post-match summary. */
-    public final Arsenal losses = new Arsenal();
+    public Arsenal losses = new Arsenal();
     private boolean lost;
 
     public Player(Side side, boolean human) {
@@ -64,6 +64,42 @@ public final class Player {
             }
             region.owner = side;
             arsenal.add(region);
+        }
+    }
+
+    /** Debug-only quick defeat (see {@link com.invertbit.games.gtw.QuickDefeat}). */
+    public void markDefeated() {
+        lost = true;
+    }
+
+    /**
+     * Start of the next DEFCON round (original {@code a.Ci.a()}): clear the lost flag,
+     * in-flight count and losses; rebuild the launch budget (+2 per non-home region)
+     * and, for an auto-deployed arsenal, a fresh sheet from the owned regions; drop
+     * everything except regions.
+     */
+    public void resetForNextRound() {
+        lost = false;
+        launchesUsed = 0;
+        launchBudget = baseBudget();
+        losses = new Arsenal();
+        aiTargets.clear();
+        inFlightPlans.clear();
+        arsenal = new Arsenal();
+        population = 0;
+        remainingWeapons = 0;
+        java.util.Iterator<MapUnit> it = units.iterator();
+        while (it.hasNext()) {
+            if (!(it.next() instanceof Region)) {
+                it.remove();
+            }
+        }
+        for (Region region : regions()) {
+            arsenal.add(region);
+            region.owner = side;
+            if (!Nations.isHome(side, region.name)) {
+                launchBudget += 2;
+            }
         }
     }
 

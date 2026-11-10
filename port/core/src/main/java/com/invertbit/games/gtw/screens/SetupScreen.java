@@ -15,12 +15,8 @@ import com.invertbit.games.gtw.AiOff;
 import com.invertbit.games.gtw.GtwGame;
 import com.invertbit.games.gtw.audio.Sounds;
 import com.invertbit.games.gtw.nations.Nations;
-import com.invertbit.games.gtw.saves.SaveSlots;
 import com.invertbit.games.gtw.nations.Side;
-import com.invertbit.games.gtw.sim.AlliancePicker;
-import com.invertbit.games.gtw.sim.Difficulty;
 import com.invertbit.games.gtw.sim.Match;
-import com.invertbit.games.gtw.sim.RoundSetup;
 import com.invertbit.games.gtw.sim.WorldRegions;
 
 import java.io.InputStream;
@@ -31,12 +27,9 @@ public class SetupScreen extends ScreenAdapter {
     private final Stage stage;
     private Side playerSide;
     private Side opponentSide;
-    private int defcon = 5;
-    private Difficulty difficulty = Difficulty.global();
+    private int defcon = 0;
     private Label playerLabel;
     private Label opponentLabel;
-    private Label defconLabel;
-    private Label difficultyLabel;
     private Label status;
     private TextButton start;
 
@@ -63,35 +56,9 @@ public class SetupScreen extends ScreenAdapter {
         addSideRow(root, false);
 
         root.row();
-        defconLabel = new Label(defconText(), game.skin);
-        root.add(button("<", new Runnable() {
-            @Override public void run() {
-                defcon = Math.max(0, defcon - 1);
-                defconLabel.setText(defconText());
-            }
-        })).size(120f, 80f);
-        root.add(defconLabel).colspan(4);
-        root.add(button(">", new Runnable() {
-            @Override public void run() {
-                defcon = Math.min(12, defcon + 1);
-                defconLabel.setText(defconText());
-            }
-        })).size(120f, 80f);
-
+        root.add(new Label("DEFCON 0", game.skin)).colspan(6);
         root.row();
-        difficultyLabel = new Label("Difficulty: " + difficulty.name(), game.skin);
-        TextButton diff = button("Cycle difficulty", new Runnable() {
-            @Override public void run() {
-                difficulty = difficulty.next();
-                Difficulty.setGlobal(difficulty);
-                difficultyLabel.setText("Difficulty: " + difficulty.name());
-            }
-        });
-        root.add(difficultyLabel).colspan(3);
-        root.add(diff).colspan(3).height(70f);
-
-        root.row();
-        start = button("Start DEFCON", new Runnable() {
+        start = button("Next", new Runnable() {
             @Override public void run() {
                 startMatch();
             }
@@ -109,10 +76,6 @@ public class SetupScreen extends ScreenAdapter {
         status.setColor(1f, 0.9f, 0.2f, 1f);
         root.add(status).colspan(6);
         stage.addActor(root);
-    }
-
-    private String defconText() {
-        return "DEFCON " + defcon;
     }
 
     private void addSideRow(Table root, final boolean choosingPlayer) {
@@ -174,24 +137,11 @@ public class SetupScreen extends ScreenAdapter {
                 try { in.close(); } catch (Exception ignored) {}
             }
         }
-        Difficulty.setInProgress(difficulty);
-        AlliancePicker.reset();
-        Match match = Match.create(playerSide, opponentSide, defcon);
-        AlliancePicker.get().assignAllies(defcon, match.player());
-        SaveSlots.select(SaveSlots.FIRST);
-        try {
-            SaveSlots.saveCurrent(match);
-        } catch (RuntimeException e) {
-            Gdx.app.error("GTW", "save", e);
-        }
-        try {
-            RoundSetup.deploy(match, RoundSetup.gridFromWorld());
-        } catch (RuntimeException e) {
-            status.setText("Deploy failed: " + e.getMessage());
-            Gdx.app.error("GTW", "deploy", e);
-            return;
-        }
-        game.setScreen(new BattleScreen(game, match));
+        // Original c.Cc builds a new match at DEFCON 0 and does not auto-ally
+        // the player; alliances are picked by hand on the prep / alliance screens,
+        // and AI allies are assigned only when Start deploys (c.Cl / RoundSetup).
+        Match match = Match.create(playerSide, opponentSide, 0);
+        game.setScreen(new PrepScreen(game, match));
     }
 
     private TextButton button(String caption, final Runnable action) {
