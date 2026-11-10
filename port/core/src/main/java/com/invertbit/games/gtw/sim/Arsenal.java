@@ -1,6 +1,7 @@
 package com.invertbit.games.gtw.sim;
 
 import com.invertbit.games.gtw.nations.Nations;
+import com.invertbit.games.gtw.settings.Prefs;
 
 /**
  * A side's arsenal sheet (original {@code a.Cb}). Points spent on the manual
@@ -63,6 +64,49 @@ public final class Arsenal {
                     }
                 }
             }
+        }
+    }
+
+    /** Original {@code a.Cb.a(String, Cc)}: rows under {@code <key>.AB.<KIND>.m5/m10/m15} plus counters. */
+    public void write(String key, Prefs prefs) {
+        String ab = key + ".AB";
+        YieldRow[] rows = {city, silo, bomber, submarine};
+        for (YieldRow row : rows) {
+            prefs.putInt(ab + "." + row.kind.name() + ".m5", row.m5);
+            prefs.putInt(ab + "." + row.kind.name() + ".m10", row.m10);
+            prefs.putInt(ab + "." + row.kind.name() + ".m15", row.m15);
+        }
+        prefs.putInt(key + ".populationCount", populationCount);
+        prefs.putInt(key + ".siloCount", siloCount);
+        prefs.putInt(key + ".submarineCount", submarineCount);
+        prefs.putInt(key + ".maxPoints", maxPoints);
+        prefs.putInt(key + ".points", points);
+    }
+
+    /**
+     * Original {@code a.Cb.b(String, Cc)} reads the four rows and {@code points}. The original
+     * adds the saved rows onto rows already accumulated from the countries; here the rows are
+     * replaced instead, so a reloaded save does not double its yields.
+     */
+    public void read(String key, Prefs prefs) {
+        String ab = key + ".AB";
+        YieldRow[] rows = {city, silo, bomber, submarine};
+        for (YieldRow row : rows) {
+            row.m5 = prefs.getInt(ab + "." + row.kind.name() + ".m5");
+            row.m10 = prefs.getInt(ab + "." + row.kind.name() + ".m10");
+            row.m15 = prefs.getInt(ab + "." + row.kind.name() + ".m15");
+        }
+        points = prefs.getInt(key + ".points");
+    }
+
+    /** Loss bookkeeping (original {@code b.d.Ck}): add {@code mt} into the 5/10/15 bucket for {@code yield}. */
+    public static void addLoss(YieldRow row, int yield, int mt) {
+        if (yield == 5) {
+            row.add5(mt);
+        } else if (yield == 10) {
+            row.add10(mt);
+        } else if (yield == 15) {
+            row.add15(mt);
         }
     }
 

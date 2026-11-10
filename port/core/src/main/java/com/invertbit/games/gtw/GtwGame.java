@@ -13,7 +13,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.NinePatchDrawable;
+import com.invertbit.games.gtw.audio.Sounds;
 import com.invertbit.games.gtw.screens.MenuScreen;
+import com.invertbit.games.gtw.settings.GameSettings;
 
 /** Application listener for the libGDX 1.14 port. */
 public class GtwGame extends Game {
@@ -34,6 +36,12 @@ public class GtwGame extends Game {
         font = new BitmapFont();
         font.getData().setScale(2f);
         skin = buildSkin();
+        try {
+            GameSettings.loadFromPrefs();
+        } catch (RuntimeException e) {
+            com.badlogic.gdx.Gdx.app.error("GTW", "settings", e);
+        }
+        Sounds.load();
         setScreen(new MenuScreen(this));
     }
 
@@ -84,5 +92,6 @@ public class GtwGame extends Game {
         if (whitePixel != null) {
             whitePixel.dispose();
         }
+        Sounds.dispose();
     }
 }

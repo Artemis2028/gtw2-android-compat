@@ -170,19 +170,21 @@ public class BattlePauseTest {
         BattlePause p = new BattlePause();
         FakeBattle b = new FakeBattle(-1f);
         p.start(T0);
-        assertEquals(1, p.speed());
+        assertEquals(1f, p.speed(), 0f);
         assertEquals("1x", p.speedLabel());
+        assertEquals("Speed 1x", p.speedCaption());
         long now = run(p, b, T0, 10);
         assertEquals(10 * FRAME, b.simMs);
         assertEquals(10, b.aiTurns);
 
-        p.setSpeed(2);
+        p.setSpeed(2f);
         assertEquals("2x", p.speedLabel());
+        assertEquals("Speed 2x", p.speedCaption());
         now = run(p, b, now, 10);
         assertEquals("2x doubles battle time", 10 * FRAME + 10 * FRAME * 2, b.simMs);
         assertEquals("2x runs two AI turns per frame", 10 + 20, b.aiTurns);
 
-        p.setSpeed(4);
+        p.setSpeed(4f);
         now = run(p, b, now, 5);
         assertEquals(10 * FRAME + 20 * FRAME + 5 * FRAME * 4, b.simMs);
         assertEquals(10 + 20 + 20, b.aiTurns);
@@ -194,29 +196,87 @@ public class BattlePauseTest {
     }
 
     @Test
-    public void cycleSpeedGoesOneTwoFourOneAndRejectsJunk() {
+    public void cycleSpeedGoesThroughAllFiveAndRejectsJunk() {
         BattlePause q = new BattlePause();
-        assertEquals(1, q.speed());
-        assertEquals(2, q.cycleSpeed());
-        assertEquals(4, q.cycleSpeed());
-        assertEquals(1, q.cycleSpeed());
-        assertEquals(2, q.cycleSpeed());
-        q.setSpeed(3);
-        assertEquals("invalid speed is ignored", 2, q.speed());
-        q.setSpeed(0);
-        assertEquals(2, q.speed());
+        assertEquals(1f, q.speed(), 0f);
+        assertEquals(2f, q.cycleSpeed(), 0f);
+        assertEquals(4f, q.cycleSpeed(), 0f);
+        assertEquals(0.25f, q.cycleSpeed(), 0f);
+        assertEquals("0.25x", q.speedLabel());
+        assertEquals("Speed 0.25x", q.speedCaption());
+        assertEquals(0.5f, q.cycleSpeed(), 0f);
+        assertEquals("0.5x", q.speedLabel());
+        assertEquals("Speed 0.5x", q.speedCaption());
+        assertEquals(1f, q.cycleSpeed(), 0f);
+        assertEquals(2f, q.cycleSpeed(), 0f);
+        q.setSpeed(3f);
+        assertEquals("invalid speed is ignored", 2f, q.speed(), 0f);
+        q.setSpeed(0f);
+        assertEquals(2f, q.speed(), 0f);
     }
 
     @Test
     public void newBattleRestoresDefaultSpeed() {
         BattlePause p = new BattlePause();
         p.start(T0);
-        p.setSpeed(4);
+        p.setSpeed(4f);
         p.start(T0 + 1_000);
-        assertEquals(1, p.speed());
-        p.setDefaultSpeed(2);
-        p.setSpeed(4);
+        assertEquals(1f, p.speed(), 0f);
+        p.setDefaultSpeed(2f);
+        p.setSpeed(4f);
         p.start(T0 + 2_000);
-        assertEquals("start applies defaultSpeed, not the last in-battle setting", 2, p.speed());
+        assertEquals("start applies defaultSpeed, not the last in-battle setting", 2f, p.speed(), 0f);
+        p.setDefaultSpeed(0.5f);
+        p.setSpeed(4f);
+        p.start(T0 + 3_000);
+        assertEquals(0.5f, p.speed(), 0f);
+        assertEquals("Speed 0.5x", p.speedCaption());
+    }
+
+    @Test
+    public void quarterAndHalfSpeedScaleTimeAndAccumulateAi() {
+        BattlePause p = new BattlePause();
+        FakeBattle b = new FakeBattle(-1f);
+        p.start(T0);
+        p.setSpeed(0.25f);
+        long now = run(p, b, T0, 8);
+        assertEquals("0.25x is a quarter of wall time", 8 * FRAME / 4, b.simMs);
+        assertEquals("0.25x accumulates one AI turn every four frames", 2, b.aiTurns);
+
+        p.setSpeed(0.5f);
+        now = run(p, b, now, 4);
+        assertEquals(8 * FRAME / 4 + 4 * FRAME / 2, b.simMs);
+        assertEquals(2 + 2, b.aiTurns);
+
+        p.pause();
+        String frozen = b.snapshot();
+        run(p, b, now, 40);
+        assertEquals("slow speed must not thaw a paused battle", frozen, b.snapshot());
+    }
+
+    @Test
+    public void cyclingSpeedWhilePausedDoesNotAdvanceTheSim() {
+        BattlePause p = new BattlePause();
+        FakeBattle b = new FakeBattle(-1f);
+        p.start(T0);
+        long now = run(p, b, T0, 4);
+        p.pause();
+        String frozen = b.snapshot();
+        p.cycleSpeed();
+        p.cycleSpeed();
+        run(p, b, now, 10);
+        assertEquals(frozen, b.snapshot());
+        assertTrue("still paused after changing speed", p.isPaused());
+        assertEquals(4f, p.speed(), 0f);
+        assertEquals("Speed 4x", p.speedCaption());
+    }
+
+    @Test
+    public void speedButtonVisibleWhileRunningAndPaused() {
+        BattlePause p = new BattlePause();
+        p.start(T0);
+        assertTrue(p.speedButtonVisible());
+        p.pause();
+        assertTrue(p.speedButtonVisible());
     }
 }

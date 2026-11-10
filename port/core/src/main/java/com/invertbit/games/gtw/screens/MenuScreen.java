@@ -13,6 +13,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.invertbit.games.gtw.AiOff;
 import com.invertbit.games.gtw.GtwGame;
+import com.invertbit.games.gtw.audio.Sounds;
 
 public class MenuScreen extends ScreenAdapter {
 
@@ -37,13 +38,13 @@ public class MenuScreen extends ScreenAdapter {
         })).size(620f, 200f);
         root.add(button("Continue", new Runnable() {
             @Override public void run() {
-                /* M2: load a save. */
+                game.setScreen(new SlotScreen(game));
             }
         })).size(620f, 200f);
         root.row();
         root.add(button("Settings", new Runnable() {
             @Override public void run() {
-                /* M3: settings screen. */
+                game.setScreen(new SettingsScreen(game));
             }
         })).size(620f, 200f);
         root.add(button("Help", new Runnable() {
@@ -65,6 +66,7 @@ public class MenuScreen extends ScreenAdapter {
         button.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                Sounds.playButton();
                 action.run();
             }
         });

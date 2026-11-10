@@ -13,7 +13,9 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.invertbit.games.gtw.AiOff;
 import com.invertbit.games.gtw.GtwGame;
+import com.invertbit.games.gtw.audio.Sounds;
 import com.invertbit.games.gtw.nations.Nations;
+import com.invertbit.games.gtw.saves.SaveSlots;
 import com.invertbit.games.gtw.nations.Side;
 import com.invertbit.games.gtw.sim.AlliancePicker;
 import com.invertbit.games.gtw.sim.Difficulty;
@@ -30,7 +32,7 @@ public class SetupScreen extends ScreenAdapter {
     private Side playerSide;
     private Side opponentSide;
     private int defcon = 5;
-    private Difficulty difficulty = Difficulty.EASY;
+    private Difficulty difficulty = Difficulty.global();
     private Label playerLabel;
     private Label opponentLabel;
     private Label defconLabel;
@@ -81,6 +83,7 @@ public class SetupScreen extends ScreenAdapter {
         TextButton diff = button("Cycle difficulty", new Runnable() {
             @Override public void run() {
                 difficulty = difficulty.next();
+                Difficulty.setGlobal(difficulty);
                 difficultyLabel.setText("Difficulty: " + difficulty.name());
             }
         });
@@ -175,6 +178,12 @@ public class SetupScreen extends ScreenAdapter {
         AlliancePicker.reset();
         Match match = Match.create(playerSide, opponentSide, defcon);
         AlliancePicker.get().assignAllies(defcon, match.player());
+        SaveSlots.select(SaveSlots.FIRST);
+        try {
+            SaveSlots.saveCurrent(match);
+        } catch (RuntimeException e) {
+            Gdx.app.error("GTW", "save", e);
+        }
         try {
             RoundSetup.deploy(match, RoundSetup.gridFromWorld());
         } catch (RuntimeException e) {
@@ -191,6 +200,7 @@ public class SetupScreen extends ScreenAdapter {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 if (!button.isDisabled()) {
+                    Sounds.playButton();
                     action.run();
                 }
             }

@@ -14,6 +14,8 @@ public final class Battle implements BattlePause.Sim {
     public final List<Missile> missiles = new ArrayList<Missile>();
     public Launcher selected;
     public boolean finished;
+    /** Missiles that reached their target; the screen plays the impact sound when it grows. */
+    public int impacts;
     private int gameOverCalls;
 
     public Battle(Match match) {
@@ -165,6 +167,7 @@ public final class Battle implements BattlePause.Sim {
     }
 
     private void resolve(Missile missile) {
+        impacts++;
         MapUnit target = missile.target;
         Launcher source = missile.source;
         Player shooter = ownerOf(source.owner);
@@ -180,6 +183,7 @@ public final class Battle implements BattlePause.Sim {
                 city.hit(source.yield);
                 Player victim = ownerOf(city.owner);
                 if (victim != null) {
+                    Arsenal.addLoss(victim.losses.city, source.yield, source.yield);
                     victim.population -= city.lastHit;
                     if (victim.population < 0) {
                         victim.population = 0;
@@ -197,6 +201,13 @@ public final class Battle implements BattlePause.Sim {
             Player victim = ownerOf(hit.owner);
             if (victim != null) {
                 int lost = hit.kind == WeaponKind.BOMBER ? hit.yield : hit.yield * Math.max(hit.ammo, 0);
+                if (hit.kind == WeaponKind.SUBMARINE) {
+                    Arsenal.addLoss(victim.losses.submarine, hit.yield, lost);
+                } else if (hit.kind == WeaponKind.BOMBER) {
+                    Arsenal.addLoss(victim.losses.bomber, hit.yield, lost);
+                } else {
+                    Arsenal.addLoss(victim.losses.silo, hit.yield, lost);
+                }
                 victim.remainingWeapons -= lost;
                 if (victim.remainingWeapons < 0) {
                     victim.remainingWeapons = 0;

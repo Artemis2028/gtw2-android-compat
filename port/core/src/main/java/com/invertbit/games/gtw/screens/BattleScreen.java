@@ -19,6 +19,8 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.invertbit.games.gtw.AiOff;
 import com.invertbit.games.gtw.GtwGame;
+import com.invertbit.games.gtw.audio.Sounds;
+import com.invertbit.games.gtw.settings.GameSettings;
 import com.invertbit.games.gtw.map.WorldMap;
 import com.invertbit.games.gtw.nations.Nations;
 import com.invertbit.games.gtw.nations.Side;
@@ -48,7 +50,9 @@ public class BattleScreen extends ScreenAdapter {
     private final Vector3 touch = new Vector3();
     private WorldMap map;
     private TextButton speedButton;
+    private TextButton overlaySpeedButton;
     private TextButton pauseButton;
+    private int impactsSeen;
     private Label status;
     private Label ticker;
     private boolean shownGameOver;
@@ -61,9 +65,10 @@ public class BattleScreen extends ScreenAdapter {
         this.overlay = new Stage(new StretchViewport(GtwGame.UI_WIDTH, GtwGame.UI_HEIGHT), game.batch);
         loadMap();
         fitCamera();
+        pause.setDefaultSpeed(GameSettings.get().defaultSpeed());
+        pause.start(System.currentTimeMillis());
         buildHud();
         buildOverlay();
-        pause.start(System.currentTimeMillis());
     }
 
     private void loadMap() {
@@ -106,23 +111,44 @@ public class BattleScreen extends ScreenAdapter {
         camera.update();
     }
 
+    /** Bright caption so the speed control stands out from the map and the status line. */
+    private static final Color SPEED_TEXT = new Color(1f, 0.9f, 0.3f, 1f);
+
+    private void cycleSpeed() {
+        pause.cycleSpeed();
+        refreshSpeedButtons();
+    }
+
+    private void refreshSpeedButtons() {
+        String caption = pause.speedCaption();
+        if (speedButton != null) {
+            speedButton.setText(caption);
+        }
+        if (overlaySpeedButton != null) {
+            overlaySpeedButton.setText(caption);
+        }
+    }
+
     private void buildHud() {
         Table root = new Table();
         root.setFillParent(true);
-        speedButton = button(pause.speedLabel(), new Runnable() {
+        root.top();
+        speedButton = button(pause.speedCaption(), new Runnable() {
             @Override public void run() {
-                pause.cycleSpeed();
-                speedButton.setText(pause.speedLabel());
+                cycleSpeed();
             }
         });
+        speedButton.getLabel().setColor(SPEED_TEXT);
         pauseButton = button("Pause", new Runnable() {
             @Override public void run() {
                 pause.pause();
             }
         });
-        root.add(speedButton).size(140f, 80f).top().left().pad(16f);
+        // Top bar: speed (left, large) · spacer · pause (right). Status sits on its own row
+        // below so nothing overlaps the buttons.
+        root.add(speedButton).size(380f, 120f).left().pad(16f);
         root.add().expandX();
-        root.add(pauseButton).size(180f, 80f).top().right().pad(16f);
+        root.add(pauseButton).size(240f, 120f).right().pad(16f);
         root.row();
         status = new Label("", game.skin);
         root.add(status).colspan(3).expandX().left().padLeft(20f);
@@ -142,18 +168,28 @@ public class BattleScreen extends ScreenAdapter {
     private void buildOverlay() {
         Table root = new Table();
         root.setFillParent(true);
+        root.add(new Label("PAUSED", game.skin, "title")).padBottom(24f);
+        root.row();
         root.add(button("Resume", new Runnable() {
             @Override public void run() {
                 pause.resume(System.currentTimeMillis());
             }
-        })).size(480f, 140f);
+        })).size(480f, 130f);
+        root.row();
+        overlaySpeedButton = button(pause.speedCaption(), new Runnable() {
+            @Override public void run() {
+                cycleSpeed();
+            }
+        });
+        overlaySpeedButton.getLabel().setColor(SPEED_TEXT);
+        root.add(overlaySpeedButton).size(480f, 130f).padTop(20f);
         root.row();
         root.add(button("Quit to menu", new Runnable() {
             @Override public void run() {
                 pause.quit();
                 game.setScreen(new MenuScreen(game));
             }
-        })).size(480f, 140f).padTop(24f);
+        })).size(480f, 130f).padTop(20f);
         overlay.addActor(root);
     }
 
@@ -162,6 +198,7 @@ public class BattleScreen extends ScreenAdapter {
         button.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                Sounds.playButton();
                 action.run();
             }
         });
@@ -170,7 +207,24 @@ public class BattleScreen extends ScreenAdapter {
 
     @Override
     public void show() {
-        Gdx.input.setInputProcessor(new InputMultiplexer(hud, overlay, new InputAdapter() {
+        Gdx.input.setInputProcessor(new InputMultiplexer(new InputAdapter() {
+            // Route touches to whichever stage is visible, so the hidden HUD's buttons
+            // cannot be hit through the pause overlay and vice versa.
+            @Override
+            public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+                return (pause.overlayVisible() ? overlay : hud).touchDown(screenX, screenY, pointer, button);
+            }
+
+            @Override
+            public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+                return (pause.overlayVisible() ? overlay : hud).touchUp(screenX, screenY, pointer, button);
+            }
+
+            @Override
+            public boolean touchDragged(int screenX, int screenY, int pointer) {
+                return (pause.overlayVisible() ? overlay : hud).touchDragged(screenX, screenY, pointer);
+            }
+        }, new InputAdapter() {
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
                 if (pause.isPaused() || battle.finished) {
@@ -199,8 +253,14 @@ public class BattleScreen extends ScreenAdapter {
     @Override
     public void render(float delta) {
         pause.step(System.currentTimeMillis(), battle);
+        if (battle.impacts > impactsSeen) {
+            impactsSeen = battle.impacts;
+            Sounds.playImpact();
+        }
         if (battle.finished && !shownGameOver) {
             shownGameOver = true;
+            game.setScreen(new GameOverScreen(game, match));
+            return;
         }
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -314,6 +374,7 @@ public class BattleScreen extends ScreenAdapter {
             ticker.setText("");
         }
         pauseButton.setVisible(pause.pauseButtonVisible());
+        speedButton.setVisible(pause.speedButtonVisible());
     }
 
     @Override

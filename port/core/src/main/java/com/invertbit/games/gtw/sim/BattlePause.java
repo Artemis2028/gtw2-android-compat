@@ -6,8 +6,12 @@ import com.invertbit.games.gtw.AiOff;
  * Battle pause: one flag drives both the Resume / Quit overlay and the frozen simulation.
  * Back key, the Pause button and the app going to the background all go through {@link #pause()}.
  *
- * <p>Plain Java (no libGDX), so the rules can be tested on the JVM. Behaviour matches
- * the {@code gtw.c.BattlePause} landed on {@code feat/more-nations}.
+ * <p>Speed is one of 0.25x, 0.5x, 1x, 2x, 4x. It can be changed while running or while
+ * paused; changing it never unpauses. Slow speeds carry the fractional part of the scaled
+ * frame time and of the AI turn count over to the next frame, so 0.25x is a true quarter
+ * of 1x instead of rounding to zero.
+ *
+ * <p>Plain Java (no libGDX), so the rules can be tested on the JVM.
  */
 public final class BattlePause {
 
@@ -22,48 +26,53 @@ public final class BattlePause {
     private volatile boolean paused;
     private long last;
     private boolean started;
-    private int speed = 1;
-    private int defaultSpeed = 1;
+    private float speed = 1f;
+    private float defaultSpeed = 1f;
+    private double msCarry;
+    private float aiCarry;
 
     public void start(long now) {
         paused = false;
         last = now;
         started = true;
         speed = defaultSpeed;
+        msCarry = 0;
+        aiCarry = 0f;
     }
 
-    public int speed() {
+    public float speed() {
         return speed;
     }
 
-    public int defaultSpeed() {
+    public float defaultSpeed() {
         return defaultSpeed;
     }
 
+    /** e.g. "0.5x". */
     public String speedLabel() {
-        return speed + "x";
+        return Speeds.label(speed);
     }
 
-    public void setSpeed(int s) {
-        if (s == 1 || s == 2 || s == 4) {
+    /** HUD / overlay caption, e.g. "Speed 0.5x". */
+    public String speedCaption() {
+        return Speeds.hudLabel(speed);
+    }
+
+    public void setSpeed(float s) {
+        if (Speeds.valid(s)) {
             speed = s;
         }
     }
 
-    public void setDefaultSpeed(int s) {
-        if (s == 1 || s == 2 || s == 4) {
+    public void setDefaultSpeed(float s) {
+        if (Speeds.valid(s)) {
             defaultSpeed = s;
         }
     }
 
-    public int cycleSpeed() {
-        if (speed == 1) {
-            speed = 2;
-        } else if (speed == 2) {
-            speed = 4;
-        } else {
-            speed = 1;
-        }
+    /** 0.25x → 0.5x → 1x → 2x → 4x → 0.25x. Does not change the pause state. */
+    public float cycleSpeed() {
+        speed = Speeds.next(speed);
         return speed;
     }
 
@@ -93,6 +102,11 @@ public final class BattlePause {
         return !paused;
     }
 
+    /** The speed control is on the running HUD and on the pause overlay. */
+    public boolean speedButtonVisible() {
+        return true;
+    }
+
     public boolean back() {
         if (paused) {
             return true;
@@ -110,7 +124,10 @@ public final class BattlePause {
         if (paused || ms < 0) {
             return 0L;
         }
-        return ms * (long) speed;
+        double scaled = ms * (double) speed + msCarry;
+        long whole = (long) Math.floor(scaled);
+        msCarry = scaled - whole;
+        return whole;
     }
 
     public void step(long now, Sim sim) {
@@ -123,7 +140,9 @@ public final class BattlePause {
         }
         sim.advance(ms);
         if (!sim.countdownRunning() && !AiOff.isOn()) {
-            for (int i = 0; i < speed; i++) {
+            aiCarry += speed;
+            while (aiCarry >= 1f) {
+                aiCarry -= 1f;
                 sim.ai();
             }
         }

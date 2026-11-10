@@ -18,6 +18,8 @@ public final class Player {
     public int launchesUsed;
     public int launchBudget;
     public Arsenal arsenal = new Arsenal();
+    /** What this side lost in the match (original {@code Ci.j}); read by the post-match summary. */
+    public final Arsenal losses = new Arsenal();
     private boolean lost;
 
     public Player(Side side, boolean human) {
