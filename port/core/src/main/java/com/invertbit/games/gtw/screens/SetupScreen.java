@@ -53,11 +53,11 @@ public class SetupScreen extends ScreenAdapter {
 
         root.add(new Label("New game", game.skin, "title")).colspan(6).padBottom(16f);
         root.row();
-        playerLabel = new Label("You play as: —", game.skin);
+        playerLabel = new Label("You play as: -", game.skin);
         root.add(playerLabel).colspan(6);
         root.row();
         addSideRow(root, true);
-        opponentLabel = new Label("Opponent: —", game.skin);
+        opponentLabel = new Label("Opponent: -", game.skin);
         root.add(opponentLabel).colspan(6).padTop(16f);
         root.row();
         addSideRow(root, false);
@@ -143,7 +143,7 @@ public class SetupScreen extends ScreenAdapter {
             playerLabel.setText("You play as: " + Nations.displayName(side));
             if (opponentSide == playerSide) {
                 opponentSide = null;
-                opponentLabel.setText("Opponent: —");
+                opponentLabel.setText("Opponent: -");
             }
         } else {
             if (side == playerSide) {

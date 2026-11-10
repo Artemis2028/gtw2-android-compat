@@ -77,8 +77,18 @@ public final class Prefs {
     }
 
     private static final class GdxPrefStore implements PrefStore {
-        private Preferences prefs() {
-            return Gdx.app.getPreferences("GTWGame");
+        /**
+         * One shared instance: on Android every {@code getPreferences} call returns a new
+         * wrapper with its own pending editor, so a put on one and a flush on another
+         * would silently drop the write.
+         */
+        private static Preferences shared;
+
+        private static synchronized Preferences prefs() {
+            if (shared == null) {
+                shared = Gdx.app.getPreferences("GTWGame");
+            }
+            return shared;
         }
 
         @Override public void putString(String key, String value) { prefs().putString(key, value); }
