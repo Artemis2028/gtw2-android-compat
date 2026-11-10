@@ -35,49 +35,41 @@ public class HomeOutlineTest {
     }
 
     @Test
-    public void chilePathRemainsForHitTestingButIsNotDrawn() throws Exception {
-        FileInputStream in = new FileInputStream(worldSvg());
-        WorldMap map;
-        try {
-            map = WorldMap.load(in);
-        } finally {
-            in.close();
-        }
-        boolean chileStored = false;
-        for (WorldMap.Outline outline : map.outlines) {
-            if (RegionId.chile.name().equals(outline.name)) {
-                chileStored = true;
-                break;
-            }
-        }
-        assertTrue("chile must remain a real region outline for markers/hit-testing", chileStored);
-        for (WorldMap.Outline outline : map.drawableOutlines()) {
-            assertFalse("chile should be absorbed into the SA home display outline",
-                    RegionId.chile.name().equals(outline.name));
-        }
+    public void chileAndBrazilAreDrawnSeparately() throws Exception {
+        WorldMap map = loadMap();
+        assertTrue("brazil must be drawn", drawn(map, RegionId.brazil.name()));
+        assertTrue("chile must be drawn as its own outline", drawn(map, RegionId.chile.name()));
     }
 
     @Test
-    public void southAmericaDisplayCoversBrazilAndChile() throws Exception {
-        FileInputStream in = new FileInputStream(worldSvg());
-        WorldMap map;
-        try {
-            map = WorldMap.load(in);
-        } finally {
-            in.close();
-        }
-        List<List<Vector3>> brazilDrawn = new ArrayList<List<Vector3>>();
-        for (WorldMap.Outline outline : map.drawableOutlines()) {
-            if (RegionId.brazil.name().equals(outline.name) && outline.points.size() >= 3) {
-                brazilDrawn.add(outline.points);
-            }
-        }
-        assertFalse("dissolved SA outline missing from drawable brazil", brazilDrawn.isEmpty());
+    public void southAmericaTilesWithoutOverlappingMexico() throws Exception {
+        WorldMap map = loadMap();
+        List<List<Vector3>> brazil = ringsNamed(map, RegionId.brazil.name());
+        List<List<Vector3>> chile = ringsNamed(map, RegionId.chile.name());
+        List<List<Vector3>> mexico = ringsNamed(map, RegionId.mexico.name());
+        assertFalse("brazil outline missing", brazil.isEmpty());
+        assertFalse("chile outline missing", chile.isEmpty());
+        assertFalse("mexico outline missing", mexico.isEmpty());
+
         // Equirectangular: x=(lon+180)*8, z=(90-lat)*(1920/180)
-        assertTrue("Brasilia should be inside the SA display outline",
-                insideAny(brazilDrawn, 1056.8f, 1128.5f));
-        assertTrue("Santiago should be inside the SA display outline",
-                insideAny(brazilDrawn, 875.2f, 1316.3f));
+        assertOwned("Brasilia", brazil, chile, mexico, xz(-47.88f, -15.79f));
+        assertOwned("Manaus", brazil, chile, mexico, xz(-60.02f, -3.12f));
+        assertOwned("Sao Paulo", brazil, chile, mexico, xz(-46.63f, -23.55f));
+        assertOwned("Santiago", chile, brazil, mexico, xz(-70.67f, -33.45f));
+        assertOwned("Buenos Aires", chile, brazil, mexico, xz(-58.38f, -34.60f));
+        assertOwned("Lima", chile, brazil, mexico, xz(-77.04f, -12.05f));
+        assertOwned("Quito", chile, brazil, mexico, xz(-78.47f, -0.18f));
+        assertOwned("Bogota", mexico, brazil, chile, xz(-74.07f, 4.71f));
+        assertOwned("Georgetown", mexico, brazil, chile, xz(-58.16f, 6.80f));
+        assertOwned("Cayenne", mexico, brazil, chile, xz(-52.33f, 4.94f));
+        // Game city slots (Nations.SOUTH_AMERICA_CITIES x,z). Bogota and Caracas
+        // sit in mexico's northern-SA lobe, which is the land authority there.
+        assertOwned("Lima (game)", chile, brazil, mexico, new float[]{819f, 1094f});
+        assertOwned("Bogota (game)", mexico, brazil, chile, new float[]{843f, 913f});
+        assertOwned("Caracas (game)", mexico, brazil, chile, new float[]{901f, 850f});
+        assertOwned("Sao Paulo (game)", brazil, chile, mexico, new float[]{1064f, 1219f});
+        assertOwned("Buenos Aires (game)", chile, brazil, mexico, new float[]{969f, 1339f});
+        assertOwned("Santiago (game)", chile, brazil, mexico, new float[]{870f, 1327f});
     }
 
     @Test
@@ -114,6 +106,46 @@ public class HomeOutlineTest {
                 }
             }
         }
+    }
+
+    private static WorldMap loadMap() throws Exception {
+        FileInputStream in = new FileInputStream(worldSvg());
+        try {
+            return WorldMap.load(in);
+        } finally {
+            in.close();
+        }
+    }
+
+    private static boolean drawn(WorldMap map, String name) {
+        for (WorldMap.Outline outline : map.drawableOutlines()) {
+            if (name.equals(outline.name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static List<List<Vector3>> ringsNamed(WorldMap map, String name) {
+        List<List<Vector3>> rings = new ArrayList<List<Vector3>>();
+        for (WorldMap.Outline outline : map.drawableOutlines()) {
+            if (name.equals(outline.name) && outline.points.size() >= 3) {
+                rings.add(outline.points);
+            }
+        }
+        return rings;
+    }
+
+    private static float[] xz(float lon, float lat) {
+        return new float[]{(lon + 180f) * 8f, (90f - lat) * (1920f / 180f)};
+    }
+
+    private static void assertOwned(String label, List<List<Vector3>> owner,
+                                    List<List<Vector3>> otherA, List<List<Vector3>> otherB,
+                                    float[] xz) {
+        assertTrue(label + " should be inside its region", insideAny(owner, xz[0], xz[1]));
+        assertFalse(label + " leaked into a neighbor", insideAny(otherA, xz[0], xz[1]));
+        assertFalse(label + " leaked into a neighbor", insideAny(otherB, xz[0], xz[1]));
     }
 
     private static boolean insideAny(List<List<Vector3>> rings, float x, float z) {

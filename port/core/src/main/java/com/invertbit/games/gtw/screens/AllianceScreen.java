@@ -120,7 +120,7 @@ public class AllianceScreen extends ScreenAdapter {
     }
 
     private String titleText() {
-        return match.alliancesOpen() ? "Choose alliance" : "Alliances map";
+        return match.alliancesOpen() ? "CHOOSE ALLIANCE" : "ALLIANCES MAP";
     }
 
     private String noteText() {

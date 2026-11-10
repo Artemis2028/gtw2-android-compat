@@ -93,7 +93,7 @@ public class NationPickScreen extends ScreenAdapter {
         Table root = new Table();
         root.setFillParent(true);
         root.top();
-        String title = choosingOpponent ? "Choose your opponent:" : "Choose player:";
+        String title = choosingOpponent ? "CHOOSE YOUR OPPONENT" : "CHOOSE PLAYER";
         root.add(new Label(title, game.skin, "title")).colspan(3).padTop(16f).padBottom(8f);
         root.row();
         root.add().colspan(3).expandY();
@@ -104,7 +104,7 @@ public class NationPickScreen extends ScreenAdapter {
             if (side == skip) {
                 root.add().size(640f, 150f);
             } else {
-                TextButton button = button(Nations.displayName(side), new Runnable() {
+                TextButton button = button(Nations.displayName(side).toUpperCase(java.util.Locale.US), new Runnable() {
                     @Override public void run() {
                         pick(side);
                     }

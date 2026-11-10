@@ -1,6 +1,7 @@
 package com.invertbit.games.gtw;
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -8,6 +9,8 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.NinePatch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -33,8 +36,7 @@ public class GtwGame extends Game {
     public void create() {
         batch = new SpriteBatch();
         shapes = new ShapeRenderer();
-        font = new BitmapFont();
-        font.getData().setScale(2f);
+        font = loadTerminalFont(42);
         skin = buildSkin();
         try {
             GameSettings.loadFromPrefs();
@@ -43,6 +45,32 @@ public class GtwGame extends Game {
         }
         Sounds.load();
         setScreen(new MenuScreen(this));
+    }
+
+    /**
+     * VT323 evokes an 1980s tactical/military terminal (DEFCON, WarGames-era
+     * CRT type). Generated white; screens that need side colours tint labels
+     * themselves.
+     */
+    private BitmapFont loadTerminalFont(int size) {
+        try {
+            com.badlogic.gdx.files.FileHandle file = Gdx.files.internal("fonts/VT323-Regular.ttf");
+            if (file.exists()) {
+                FreeTypeFontGenerator generator = new FreeTypeFontGenerator(file);
+                FreeTypeFontParameter parameter = new FreeTypeFontParameter();
+                parameter.size = size;
+                parameter.color = Color.WHITE;
+                parameter.minFilter = Texture.TextureFilter.Linear;
+                parameter.magFilter = Texture.TextureFilter.Linear;
+                BitmapFont generated = generator.generateFont(parameter);
+                generator.dispose();
+                return generated;
+            }
+        } catch (Throwable ignored) {
+        }
+        BitmapFont fallback = new BitmapFont();
+        fallback.getData().setScale(2f);
+        return fallback;
     }
 
     private Skin buildSkin() {
@@ -56,7 +84,7 @@ public class GtwGame extends Game {
 
         Skin built = new Skin();
         built.add("default", font);
-        Label.LabelStyle title = new Label.LabelStyle(font, new Color(0.35f, 0.75f, 1f, 1f));
+        Label.LabelStyle title = new Label.LabelStyle(font, Color.WHITE);
         built.add("title", title);
         Label.LabelStyle body = new Label.LabelStyle(font, Color.WHITE);
         built.add("default", body);
