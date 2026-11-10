@@ -114,8 +114,8 @@ public class RegionMarkersTest {
                 russia.add(path.points());
             }
         }
-        assertTrue("expected extra russia rings for Baltics/Moldova, got " + russia.size(),
-                russia.size() >= 5);
+        assertTrue("expected russia to keep a far-east or island ring, got " + russia.size(),
+                russia.size() >= 2);
         // Equirectangular: x=(lon+180)*8, z=(90-lat)*(1920/180)
         assertTrue("Estonia should be russia", insideAny(russia, 1640.0f, 334.9f));
         assertTrue("Latvia should be russia", insideAny(russia, 1632.8f, 353.1f));
@@ -138,8 +138,8 @@ public class RegionMarkersTest {
                 china.add(path.points());
             }
         }
-        assertTrue("expected extra china ring for Mongolia, got " + china.size(),
-                china.size() >= 3);
+        assertTrue("expected china to keep Hainan after Mongolia dissolve, got " + china.size(),
+                china.size() >= 2);
         assertTrue("Mongolia should be china", insideAny(china, 2270.4f, 458.7f));
     }
 

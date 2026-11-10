@@ -77,7 +77,7 @@ public class SvgParserTest {
         }
         assertTrue("europe should keep NATO pieces, not just the first path: " + europe, europe > 1);
         assertTrue("pacific should keep Japan + Korea + Philippines: " + pacific, pacific > 1);
-        assertTrue("russia should include Kazakhstan plus Baltics/Moldova: " + russia, russia >= 5);
-        assertTrue("china should include Mongolia: " + china, china >= 3);
+        assertTrue("russia should keep far-east/island rings after dissolving seams: " + russia, russia >= 2);
+        assertTrue("china should keep Hainan after dissolving Mongolia: " + china, china >= 2);
     }
 }

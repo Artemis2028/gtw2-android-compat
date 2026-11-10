@@ -174,7 +174,7 @@ public class NationPickScreen extends ScreenAdapter {
         if (map != null) {
             game.shapes.begin(ShapeRenderer.ShapeType.Line);
             Side grey = hidden();
-            for (WorldMap.Outline outline : map.outlines) {
+            for (WorldMap.Outline outline : map.drawableOutlines()) {
                 Side owner = Nations.ownerOf(outline.name);
                 if (owner == null) {
                     continue;

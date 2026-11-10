@@ -132,7 +132,7 @@ public class MapScreen extends ScreenAdapter {
         game.shapes.setProjectionMatrix(camera.combined);
         if (map != null) {
             game.shapes.begin(ShapeRenderer.ShapeType.Line);
-            for (WorldMap.Outline outline : map.outlines) {
+            for (WorldMap.Outline outline : map.drawableOutlines()) {
                 Color color = WorldMap.colorFor(outline.name);
                 game.shapes.setColor(color);
                 Vector3 prev = outline.points.get(0);
