@@ -63,6 +63,7 @@ public class SvgParserTest {
         int europe = 0;
         int pacific = 0;
         int russia = 0;
+        int china = 0;
         for (WorldMap.Outline outline : map.outlines) {
             if ("europe".equals(outline.name)) {
                 europe++;
@@ -70,10 +71,13 @@ public class SvgParserTest {
                 pacific++;
             } else if ("russia".equals(outline.name)) {
                 russia++;
+            } else if ("china".equals(outline.name)) {
+                china++;
             }
         }
         assertTrue("europe should keep NATO pieces, not just the first path: " + europe, europe > 1);
         assertTrue("pacific should keep Japan + Korea + Philippines: " + pacific, pacific > 1);
-        assertTrue("russia should include the former Kazakhstan path: " + russia, russia > 1);
+        assertTrue("russia should include Kazakhstan plus Baltics/Moldova: " + russia, russia >= 5);
+        assertTrue("china should include Mongolia: " + china, china >= 3);
     }
 }

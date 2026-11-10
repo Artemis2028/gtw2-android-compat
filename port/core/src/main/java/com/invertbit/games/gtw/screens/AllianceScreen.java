@@ -181,6 +181,9 @@ public class AllianceScreen extends ScreenAdapter {
     }
 
     private static Vector3 markerAt(Region region) {
+        if (region.marker != null) {
+            return region.marker;
+        }
         if (region.label != null && region.label.origin != null) {
             return region.label.origin;
         }
