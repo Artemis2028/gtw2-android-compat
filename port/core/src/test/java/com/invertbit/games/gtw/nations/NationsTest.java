@@ -131,5 +131,9 @@ public class NationsTest {
         assertEquals(30, russia.silos);
         assertEquals(26, russia.submarines);
         assertEquals(6, russia.cities);
+        com.invertbit.games.gtw.sim.RegionStats china = Nations.stats(RegionId.china);
+        assertEquals(30, china.silos);
+        assertEquals(26, china.submarines);
+        assertEquals(6, china.cities);
     }
 }

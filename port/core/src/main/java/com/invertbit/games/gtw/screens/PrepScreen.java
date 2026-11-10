@@ -81,7 +81,7 @@ public class PrepScreen extends ScreenAdapter {
             String name = Nations.displayName(side.side);
             line = line == null ? name : line + " vs " + name;
         }
-        return line == null ? "" : line;
+        return line == null ? "" : line.toUpperCase(java.util.Locale.US);
     }
 
     private String hintText() {

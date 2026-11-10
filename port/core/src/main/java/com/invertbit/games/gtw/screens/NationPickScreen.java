@@ -5,16 +5,15 @@ import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.invertbit.games.gtw.GtwGame;
 import com.invertbit.games.gtw.audio.Sounds;
@@ -25,6 +24,7 @@ import com.invertbit.games.gtw.sim.Match;
 import com.invertbit.games.gtw.sim.WorldRegions;
 
 import java.io.InputStream;
+import java.util.List;
 
 /**
  * Choose-player / choose-opponent screens (original {@code c.Cc} / {@code c.Cg} +
@@ -37,8 +37,7 @@ public class NationPickScreen extends ScreenAdapter {
     private final Match incoming;
     private final boolean choosingOpponent;
     private final Stage hud;
-    private final OrthographicCamera camera = new OrthographicCamera();
-    private final FitViewport mapViewport = new FitViewport(2880f, 1920f, camera);
+    private final Actor silArea = new Actor();
     private WorldMap map;
     private String error;
 
@@ -56,9 +55,6 @@ public class NationPickScreen extends ScreenAdapter {
         this.choosingOpponent = choosingOpponent;
         this.hud = new Stage(new StretchViewport(GtwGame.UI_WIDTH, GtwGame.UI_HEIGHT), game.batch);
         load();
-        camera.setToOrtho(false, 2880f, 1920f);
-        camera.position.set(1440f, -960f, 0f);
-        camera.update();
         buildHud();
     }
 
@@ -93,25 +89,32 @@ public class NationPickScreen extends ScreenAdapter {
         Table root = new Table();
         root.setFillParent(true);
         root.top();
-        String title = choosingOpponent ? "Choose your opponent:" : "Choose player:";
-        root.add(new Label(title, game.skin, "title")).colspan(3).padTop(16f).padBottom(8f);
+        String title = choosingOpponent ? "CHOOSE YOUR OPPONENT" : "CHOOSE PLAYER";
+        root.add(new Label(title, game.skin, "title")).colspan(3)
+                .padTop(NationPreviewLayout.TITLE_PAD_TOP)
+                .padBottom(NationPreviewLayout.TITLE_PAD_BOTTOM);
         root.row();
-        root.add().colspan(3).expandY();
+        root.add(silArea).colspan(3).expandY().fill();
         root.row();
         Side skip = hidden();
         int col = 0;
         for (final Side side : Nations.PICK_ORDER) {
             if (side == skip) {
-                root.add().size(640f, 150f);
+                root.add().size(NationPreviewLayout.BUTTON_WIDTH + NationPreviewLayout.BUTTON_PAD * 2f,
+                        NationPreviewLayout.BUTTON_HEIGHT + NationPreviewLayout.BUTTON_PAD * 2f);
             } else {
-                TextButton button = button(Nations.displayName(side), new Runnable() {
-                    @Override public void run() {
-                        pick(side);
-                    }
-                });
+                TextButton button = button(
+                        Nations.displayName(side).toUpperCase(java.util.Locale.US),
+                        "nation",
+                        new Runnable() {
+                            @Override public void run() {
+                                pick(side);
+                            }
+                        });
                 float[] rgb = Nations.rgb(side);
                 button.getLabel().setColor(new Color(rgb[0], rgb[1], rgb[2], 1f));
-                root.add(button).size(620f, 140f).pad(8f);
+                root.add(button).size(NationPreviewLayout.BUTTON_WIDTH, NationPreviewLayout.BUTTON_HEIGHT)
+                        .pad(NationPreviewLayout.BUTTON_PAD);
             }
             col++;
             if (col == 3) {
@@ -123,7 +126,7 @@ public class NationPickScreen extends ScreenAdapter {
             root.add(new Label(error, game.skin)).colspan(3);
             root.row();
         }
-        root.add(button("Back", new Runnable() {
+        root.add(button("Back", "back", new Runnable() {
             @Override public void run() {
                 if (choosingOpponent) {
                     game.setScreen(NationPickScreen.choosePlayer(game));
@@ -131,7 +134,9 @@ public class NationPickScreen extends ScreenAdapter {
                     game.setScreen(new MenuScreen(game));
                 }
             }
-        })).colspan(3).size(280f, 90f).padTop(8f).padBottom(16f);
+        })).colspan(3).size(280f, NationPreviewLayout.BACK_HEIGHT)
+                .padTop(NationPreviewLayout.BACK_PAD_TOP)
+                .padBottom(NationPreviewLayout.BACK_PAD_BOTTOM);
         hud.addActor(root);
     }
 
@@ -148,8 +153,8 @@ public class NationPickScreen extends ScreenAdapter {
         game.setScreen(new PrepScreen(game, incoming));
     }
 
-    private TextButton button(String caption, final Runnable action) {
-        TextButton button = new TextButton(caption, game.skin);
+    private TextButton button(String caption, String style, final Runnable action) {
+        TextButton button = new TextButton(caption, game.skin, style);
         button.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -169,42 +174,52 @@ public class NationPickScreen extends ScreenAdapter {
     public void render(float delta) {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        mapViewport.apply();
-        game.shapes.setProjectionMatrix(camera.combined);
-        if (map != null) {
+        hud.getViewport().apply();
+        hud.act(delta);
+        if (map != null && silArea.getWidth() > 1f && silArea.getHeight() > 1f) {
+            game.shapes.setProjectionMatrix(hud.getCamera().combined);
             game.shapes.begin(ShapeRenderer.ShapeType.Line);
             Side grey = hidden();
-            for (WorldMap.Outline outline : map.outlines) {
-                Side owner = Nations.ownerOf(outline.name);
-                if (owner == null) {
+            float[] cells = NationPreviewLayout.cells(
+                    silArea.getX(), silArea.getY(), silArea.getWidth(), silArea.getHeight());
+            for (int i = 0; i < Nations.PICK_ORDER.length; i++) {
+                Side side = Nations.PICK_ORDER[i];
+                List<List<Vector3>> rings = NationPreviewLayout.previewRings(
+                        NationPreviewLayout.homeRings(map, side),
+                        cells[i * 4 + 2], cells[i * 4 + 3],
+                        NationPreviewLayout.CELL_PAD);
+                float[] box = NationPreviewLayout.bounds(rings);
+                if (box == null) {
                     continue;
                 }
-                if (!Nations.isHome(owner, outline.name)) {
-                    continue;
-                }
-                Color color = owner == grey ? WorldMap.UNOWNED : WorldMap.colorFor(outline.name, owner);
+                float[] fit = NationPreviewLayout.fit(
+                        box[0], box[1], box[2], box[3],
+                        cells[i * 4], cells[i * 4 + 1], cells[i * 4 + 2], cells[i * 4 + 3],
+                        NationPreviewLayout.CELL_PAD);
+                Color color = side == grey ? WorldMap.UNOWNED : WorldMap.colorFor(Nations.home(side).name(), side);
                 game.shapes.setColor(color);
-                float[] off = Nations.previewOffset(owner);
-                Vector3 prev = outline.points.get(0);
-                for (int i = 1; i < outline.points.size(); i++) {
-                    Vector3 next = outline.points.get(i);
-                    game.shapes.line(prev.x + off[0], -(prev.z + off[1]),
-                            next.x + off[0], -(next.z + off[1]));
-                    prev = next;
+                for (int r = 0; r < rings.size(); r++) {
+                    List<Vector3> ring = rings.get(r);
+                    Vector3 prev = ring.get(0);
+                    for (int p = 1; p < ring.size(); p++) {
+                        Vector3 next = ring.get(p);
+                        game.shapes.line(
+                                NationPreviewLayout.screenX(prev.x, fit),
+                                NationPreviewLayout.screenY(prev.z, fit),
+                                NationPreviewLayout.screenX(next.x, fit),
+                                NationPreviewLayout.screenY(next.z, fit));
+                        prev = next;
+                    }
                 }
             }
             game.shapes.end();
         }
-        hud.getViewport().apply();
-        hud.act(delta);
         hud.draw();
     }
 
     @Override
     public void resize(int width, int height) {
-        mapViewport.update(width, height);
         hud.getViewport().update(width, height, true);
-        camera.update();
     }
 
     @Override

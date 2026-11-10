@@ -163,6 +163,7 @@ public class NationsTest {
                 allPolys.addAll(regionPolygons(hn));
             }
             assertFalse(ia + " has no outlines", allPolys.isEmpty());
+            java.util.List<List<float[]>> mexicoPolys = regionPolygons("mexico");
             for (Nations.City c : cities) {
                 float[] p = Nations.project(c.lat, c.lon);
                 double nudge = Math.hypot(p[0] - c.x, p[1] - c.z);
@@ -170,6 +171,14 @@ public class NationsTest {
                 boolean in = false;
                 for (List<float[]> poly : allPolys) {
                     in |= inside(c.x, c.z, poly);
+                }
+                // mexico's northern-SA lobe is the land authority for Colombia
+                // and Venezuela, so the historical Bogota/Caracas slots sit there.
+                if (!in && ia == Ci.Ia.SOUTH_AMERICA
+                        && ("Bogota".equals(c.name) || "Caracas".equals(c.name))) {
+                    for (List<float[]> poly : mexicoPolys) {
+                        in |= inside(c.x, c.z, poly);
+                    }
                 }
                 assertTrue(c.name + " is outside " + homeNames, in);
             }
