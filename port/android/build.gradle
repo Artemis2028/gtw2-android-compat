@@ -19,7 +19,7 @@ android {
         minSdk 21
         targetSdk 35
         versionCode 12
-        versionName '1.12-port-m12'
+        versionName '1.12-port-m12b'
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -27,7 +27,7 @@ android {
     }
     sourceSets {
         main {
-            assets.srcDirs = ['../../src/android/src/main/assets']
+            assets.srcDirs = ['src/main/assets', '../../src/android/src/main/assets']
             jniLibs.srcDirs = ["$buildDir/natives"]
         }
     }

@@ -4,10 +4,19 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 import com.invertbit.games.gtw.settings.GameSettings;
 
-/** Button click and impact samples (original {@code sounds/button.ogg} and {@code impact.ogg}). */
+/**
+ * Select/button click ({@code sounds/select.ogg}), silo and submarine launch
+ * cues, and impact ({@code impact.ogg}). Launch samples are throttled so a
+ * salvo cannot stack dozens of overlapping voices.
+ */
 public final class Sounds {
+    static final long LAUNCH_THROTTLE_MS = 150L;
+
     private static Sound button;
     private static Sound impact;
+    private static Sound launchSilo;
+    private static Sound launchSub;
+    private static long lastLaunchSoundMs;
 
     private Sounds() {}
 
@@ -16,15 +25,20 @@ public final class Sounds {
             if (Gdx.files == null || Gdx.audio == null) {
                 return;
             }
-            if (Gdx.files.internal("sounds/button.ogg").exists()) {
-                button = Gdx.audio.newSound(Gdx.files.internal("sounds/button.ogg"));
-            }
-            if (Gdx.files.internal("sounds/impact.ogg").exists()) {
-                impact = Gdx.audio.newSound(Gdx.files.internal("sounds/impact.ogg"));
-            }
+            button = loadOne("sounds/select.ogg");
+            impact = loadOne("sounds/impact.ogg");
+            launchSilo = loadOne("sounds/launch_silo.ogg");
+            launchSub = loadOne("sounds/launch_sub.ogg");
         } catch (Exception ignored) {
             // Headless / missing assets: stay silent.
         }
+    }
+
+    private static Sound loadOne(String path) {
+        if (Gdx.files.internal(path).exists()) {
+            return Gdx.audio.newSound(Gdx.files.internal(path));
+        }
+        return null;
     }
 
     public static void playButton() {
@@ -33,6 +47,38 @@ public final class Sounds {
 
     public static void playImpact() {
         play(impact, GameSettings.get().scaledVolume(GameSettings.IMPACT_BASE));
+    }
+
+    public static void playSiloLaunch() {
+        playLaunch(launchSilo);
+    }
+
+    public static void playSubLaunch() {
+        playLaunch(launchSub);
+    }
+
+    private static void playLaunch(Sound sound) {
+        float volume = GameSettings.get().scaledVolume(GameSettings.LAUNCH_BASE);
+        if (sound == null || volume <= 0f) {
+            return;
+        }
+        if (!tryAcquireLaunchSlot(System.currentTimeMillis())) {
+            return;
+        }
+        play(sound, volume);
+    }
+
+    /** Visible for tests: true if a launch cue may start at {@code nowMs}. */
+    static boolean tryAcquireLaunchSlot(long nowMs) {
+        if (lastLaunchSoundMs != 0L && nowMs - lastLaunchSoundMs < LAUNCH_THROTTLE_MS) {
+            return false;
+        }
+        lastLaunchSoundMs = nowMs;
+        return true;
+    }
+
+    static void resetLaunchThrottle() {
+        lastLaunchSoundMs = 0L;
     }
 
     private static void play(Sound sound, float volume) {
@@ -46,13 +92,17 @@ public final class Sounds {
     }
 
     public static void dispose() {
-        if (button != null) {
-            button.dispose();
-            button = null;
+        button = disposeOne(button);
+        impact = disposeOne(impact);
+        launchSilo = disposeOne(launchSilo);
+        launchSub = disposeOne(launchSub);
+        lastLaunchSoundMs = 0L;
+    }
+
+    private static Sound disposeOne(Sound sound) {
+        if (sound != null) {
+            sound.dispose();
         }
-        if (impact != null) {
-            impact.dispose();
-            impact = null;
-        }
+        return null;
     }
 }

@@ -59,6 +59,8 @@ public class BattleScreen extends ScreenAdapter {
     private TextButton overlaySpeedButton;
     private TextButton pauseButton;
     private int impactsSeen;
+    private int siloLaunchesSeen;
+    private int subLaunchesSeen;
     private Label status;
     private Label ticker;
     private boolean shownGameOver;
@@ -274,6 +276,20 @@ public class BattleScreen extends ScreenAdapter {
         if (battle.impacts > impactsSeen) {
             impactsSeen = battle.impacts;
             Sounds.playImpact();
+        }
+        if (battle.siloLaunches > siloLaunchesSeen) {
+            int extra = battle.siloLaunches - siloLaunchesSeen;
+            siloLaunchesSeen = battle.siloLaunches;
+            for (int i = 0; i < extra; i++) {
+                Sounds.playSiloLaunch();
+            }
+        }
+        if (battle.subLaunches > subLaunchesSeen) {
+            int extra = battle.subLaunches - subLaunchesSeen;
+            subLaunchesSeen = battle.subLaunches;
+            for (int i = 0; i < extra; i++) {
+                Sounds.playSubLaunch();
+            }
         }
         if (battle.finished && !shownGameOver) {
             shownGameOver = true;

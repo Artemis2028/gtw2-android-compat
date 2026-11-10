@@ -20,6 +20,10 @@ public final class Battle implements BattlePause.Sim {
     public boolean finished;
     /** Missiles that reached their target; the screen plays the impact sound when it grows. */
     public int impacts;
+    /** Silo missiles launched; the screen plays launch_silo when this grows. */
+    public int siloLaunches;
+    /** Submarine missiles launched; the screen plays launch_sub when this grows. */
+    public int subLaunches;
     private int gameOverCalls;
 
     public Battle(Match match) {
@@ -202,6 +206,11 @@ public final class Battle implements BattlePause.Sim {
             source.ammo = 0;
         }
         missiles.add(new Missile(source, target));
+        if (source.kind == WeaponKind.SILO) {
+            siloLaunches++;
+        } else if (source.kind == WeaponKind.SUBMARINE) {
+            subLaunches++;
+        }
         Player shooter = ownerOf(source.owner);
         if (shooter != null) {
             shooter.launchesUsed++;
