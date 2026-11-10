@@ -25,7 +25,13 @@ public final class Launcher extends MapUnit {
     public final Vector3 moveTo = new Vector3();
     public float moveElapsed;
     public float moveDuration;
-    public static final float BOMBER_SPEED = 30.0f;
+    /**
+     * Bomber cruise speed in world-units/sec. Original {@code b.Cc.o} is 30, but
+     * that is faster than 10 MT missiles (20) and 15 MT missiles (13.3) —
+     * missile speed is {@code 200 / yield} from {@code duration = dist * (yield/2) / 100}.
+     * Half of the 10 MT missile speed, so bombers stay slower than every yield class.
+     */
+    public static final float BOMBER_SPEED = 10.0f;
 
     public Launcher(Vector3 position, WeaponKind kind, int yield, int ammo, float speedFactor,
                     boolean playerOwned) {
@@ -85,6 +91,29 @@ public final class Launcher extends MapUnit {
         Missile.wrapShortest(moveFrom, moveTo);
         float dist = (float) Math.hypot(moveTo.x - moveFrom.x, moveTo.z - moveFrom.z);
         this.moveDuration = Math.max(0.05f, dist / BOMBER_SPEED);
+    }
+
+    /** Missile travel speed implied by the original duration formula, world-units/sec. */
+    public static float missileSpeed(int yield) {
+        return 100.0f / (yield / 2.0f);
+    }
+
+    /**
+     * Nose heading in degrees (original {@code b.d.Cd} / {@code b.Cc.l}): 0 = north
+     * (-Z), -90 = east (+X), 90 = west, ±180 = south. The objects.svg bomber
+     * glyphs already point north, so this is the rotation to apply. Parked
+     * bombers keep the native north facing.
+     */
+    public float headingDegrees() {
+        if (!isMoving()) {
+            return 0f;
+        }
+        float dx = moveTo.x - moveFrom.x;
+        float dz = moveTo.z - moveFrom.z;
+        if (dx == 0f && dz == 0f) {
+            return 0f;
+        }
+        return (float) Math.toDegrees(Math.atan2(-dx, -dz));
     }
 
     /**

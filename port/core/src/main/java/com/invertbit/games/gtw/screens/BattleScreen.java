@@ -351,8 +351,15 @@ public class BattleScreen extends ScreenAdapter {
                     game.shapes.setColor(rgb[0], rgb[1], rgb[2], 1f);
                 }
                 ObjectGlyphs.Kind kind = glyphKind(unit, player.side);
-                if (!drawGlyph(kind, unit.position.x, unit.position.z)) {
-                    fallbackShape(unit, unit.position.x, -unit.position.z);
+                float heading = 0f;
+                if (unit instanceof Launcher) {
+                    Launcher launcher = (Launcher) unit;
+                    if (launcher.kind == WeaponKind.BOMBER && launcher.isMoving()) {
+                        heading = launcher.headingDegrees();
+                    }
+                }
+                if (!drawGlyph(kind, unit.position.x, unit.position.z, heading)) {
+                    fallbackShape(unit, unit.position.x, -unit.position.z, heading);
                 }
             }
         }
@@ -404,25 +411,39 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     /** Stroke the original objects.svg outline at the unit, or return false to use a fallback mark. */
-    private boolean drawGlyph(ObjectGlyphs.Kind kind, float ux, float uz) {
+    private boolean drawGlyph(ObjectGlyphs.Kind kind, float ux, float uz, float headingDegrees) {
         if (glyphs == null || glyphs.paths(kind).isEmpty()) {
             return false;
         }
         float[] off = ObjectGlyphs.offset(kind);
+        float rad = headingDegrees * (float) Math.PI / 180f;
+        float cos = (float) Math.cos(rad);
+        float sin = (float) Math.sin(rad);
         for (java.util.List<Vector3> path : glyphs.paths(kind)) {
             Vector3 prev = path.get(0);
             for (int i = 1; i < path.size(); i++) {
                 Vector3 next = path.get(i);
-                game.shapes.line(
-                        ux + prev.x + off[0], -(uz + prev.z + off[1]),
-                        ux + next.x + off[0], -(uz + next.z + off[1]));
+                float px = rotateX(prev.x + off[0], prev.z + off[1], cos, sin);
+                float pz = rotateZ(prev.x + off[0], prev.z + off[1], cos, sin);
+                float nx = rotateX(next.x + off[0], next.z + off[1], cos, sin);
+                float nz = rotateZ(next.x + off[0], next.z + off[1], cos, sin);
+                game.shapes.line(ux + px, -(uz + pz), ux + nx, -(uz + nz));
                 prev = next;
             }
         }
         return true;
     }
 
-    private void fallbackShape(com.invertbit.games.gtw.sim.MapUnit unit, float x, float y) {
+    /** Rotate an XZ glyph point around the origin. 0 deg keeps the native north-facing nose. */
+    private static float rotateX(float x, float z, float cos, float sin) {
+        return x * cos + z * sin;
+    }
+
+    private static float rotateZ(float x, float z, float cos, float sin) {
+        return -x * sin + z * cos;
+    }
+
+    private void fallbackShape(com.invertbit.games.gtw.sim.MapUnit unit, float x, float y, float headingDegrees) {
         if (unit instanceof City) {
             game.shapes.circle(x, y, 10f, 12);
         } else if (unit instanceof Launcher) {
@@ -430,7 +451,14 @@ public class BattleScreen extends ScreenAdapter {
             if (launcher.kind == WeaponKind.SILO) {
                 game.shapes.rect(x - 6f, y - 6f, 12f, 12f);
             } else if (launcher.kind == WeaponKind.BOMBER) {
-                game.shapes.triangle(x, y + 9f, x - 8f, y - 7f, x + 8f, y - 7f);
+                float rad = headingDegrees * (float) Math.PI / 180f;
+                float cos = (float) Math.cos(rad);
+                float sin = (float) Math.sin(rad);
+                // Fallback tip is +Y (north), matching the SVG bomber nose.
+                game.shapes.triangle(
+                        x + rotateX(0f, -9f, cos, sin), y - rotateZ(0f, -9f, cos, sin),
+                        x + rotateX(-8f, 7f, cos, sin), y - rotateZ(-8f, 7f, cos, sin),
+                        x + rotateX(8f, 7f, cos, sin), y - rotateZ(8f, 7f, cos, sin));
             } else {
                 game.shapes.circle(x, y, 7f, 8);
             }
