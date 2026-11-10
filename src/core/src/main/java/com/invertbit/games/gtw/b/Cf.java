@@ -21,15 +21,14 @@ public class Cf extends com.invertbit.games.gtw.b.Ca implements java.lang.Compar
         brazil,
         chile,
         sahara,
-        egipt,
+        egypt,
         africa,
         middleeast,
-        kazakhstan,
         india,
         indonesia,
         australia,
         cuba,
-        japan
+        pacific
     }
 
     public Cf() {
