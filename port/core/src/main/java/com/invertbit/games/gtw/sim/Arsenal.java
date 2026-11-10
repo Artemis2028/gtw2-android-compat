@@ -24,6 +24,25 @@ public final class Arsenal {
         return points <= 0;
     }
 
+    /** Original {@code a.Cb.d()}: an empty sheet auto-deploys; otherwise need cities and a weapon. */
+    public boolean canStart() {
+        if (empty()) {
+            return true;
+        }
+        if (city.totalMt() <= 0) {
+            return false;
+        }
+        return silo.totalMt() > 0 || bomber.totalMt() > 0 || submarine.totalMt() > 0;
+    }
+
+    public boolean noCities() {
+        return city.totalMt() <= 0;
+    }
+
+    public boolean noWeapons() {
+        return silo.totalMt() <= 0 && bomber.totalMt() <= 0 && submarine.totalMt() <= 0;
+    }
+
     public Arsenal copy() {
         Arsenal out = new Arsenal();
         out.city.m5 = city.m5;
@@ -65,6 +84,38 @@ public final class Arsenal {
                 }
             }
         }
+    }
+
+    /**
+     * Manual refund of {@code mt} (original {@code a.Cb.b(int, Cj)}). City rows cannot go
+     * below the free population slots that came with the owned regions.
+     */
+    public void refund(int mt, YieldRow row) {
+        if (WeaponKind.CITY.equals(row.kind) && row.count() <= populationCount) {
+            return;
+        }
+        if (row.count() == 0) {
+            return;
+        }
+        if (mt == 5 && row.m5 <= 0) {
+            return;
+        }
+        if (mt == 10 && row.m10 <= 0) {
+            return;
+        }
+        if (mt == 15 && row.m15 <= 0) {
+            return;
+        }
+        if (mt == 5) {
+            row.m5 -= mt;
+        } else if (mt == 10) {
+            row.m10 -= mt;
+        } else if (mt == 15) {
+            row.m15 -= mt;
+        } else {
+            return;
+        }
+        points -= mt;
     }
 
     /** Original {@code a.Cb.a(String, Cc)}: rows under {@code <key>.AB.<KIND>.m5/m10/m15} plus counters. */

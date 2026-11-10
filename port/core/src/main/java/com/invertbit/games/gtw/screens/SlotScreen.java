@@ -99,7 +99,7 @@ public class SlotScreen extends ScreenAdapter {
             SaveSlots.select(slot);
             Difficulty.setGlobal(level);
             Difficulty.setInProgress(level);
-            game.setScreen(new SetupScreen(game));
+            game.setScreen(NationPickScreen.choosePlayer(game));
             return;
         }
         if (!SaveSlots.exists(slot)) {

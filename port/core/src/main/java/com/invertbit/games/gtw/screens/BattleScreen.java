@@ -21,6 +21,7 @@ import com.invertbit.games.gtw.AiOff;
 import com.invertbit.games.gtw.GtwGame;
 import com.invertbit.games.gtw.audio.Sounds;
 import com.invertbit.games.gtw.settings.GameSettings;
+import com.invertbit.games.gtw.map.ObjectGlyphs;
 import com.invertbit.games.gtw.map.WorldMap;
 import com.invertbit.games.gtw.nations.Nations;
 import com.invertbit.games.gtw.nations.Side;
@@ -49,6 +50,8 @@ public class BattleScreen extends ScreenAdapter {
     private final FitViewport mapViewport = new FitViewport(2880f, 1920f, camera);
     private final Vector3 touch = new Vector3();
     private WorldMap map;
+    private ObjectGlyphs glyphs;
+    private boolean loggedUnits;
     private TextButton speedButton;
     private TextButton overlaySpeedButton;
     private TextButton pauseButton;
@@ -81,6 +84,17 @@ public class BattleScreen extends ScreenAdapter {
         } finally {
             if (in != null) {
                 try { in.close(); } catch (Exception ignored) {}
+            }
+        }
+        InputStream og = null;
+        try {
+            og = Gdx.files.internal("objects.svg").read();
+            glyphs = ObjectGlyphs.load(og);
+        } catch (Exception e) {
+            Gdx.app.error("GTW", "objects.svg", e);
+        } finally {
+            if (og != null) {
+                try { og.close(); } catch (Exception ignored) {}
             }
         }
     }
@@ -268,6 +282,7 @@ public class BattleScreen extends ScreenAdapter {
         game.shapes.setProjectionMatrix(camera.combined);
         drawMap();
         drawUnits();
+        logUnitScreens();
         updateLabels();
         if (pause.overlayVisible()) {
             overlay.getViewport().apply();
@@ -316,15 +331,13 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     private void drawUnits() {
-        game.shapes.begin(ShapeRenderer.ShapeType.Filled);
+        game.shapes.begin(ShapeRenderer.ShapeType.Line);
         for (Player player : match.sides) {
             float[] rgb = Nations.rgb(player.side);
             for (com.invertbit.games.gtw.sim.MapUnit unit : player.units) {
                 if (unit.position == null || unit instanceof Region || !battle.visible(unit)) {
                     continue;
                 }
-                float x = unit.position.x;
-                float y = -unit.position.z;
                 if (unit.destroyed) {
                     game.shapes.setColor(0.4f, 0.4f, 0.4f, 1f);
                 } else if (unit == battle.selected) {
@@ -332,24 +345,15 @@ public class BattleScreen extends ScreenAdapter {
                 } else {
                     game.shapes.setColor(rgb[0], rgb[1], rgb[2], 1f);
                 }
-                if (unit instanceof City) {
-                    game.shapes.circle(x, y, 10f, 12);
-                } else if (unit instanceof Launcher) {
-                    Launcher launcher = (Launcher) unit;
-                    if (launcher.kind == WeaponKind.SILO) {
-                        game.shapes.rect(x - 6f, y - 6f, 12f, 12f);
-                    } else if (launcher.kind == WeaponKind.BOMBER) {
-                        game.shapes.triangle(x, y + 9f, x - 8f, y - 7f, x + 8f, y - 7f);
-                    } else if (launcher.surfaced) {
-                        game.shapes.circle(x, y, 7f, 8);
-                    } else {
-                        // Own submerged sub: drawn dimmer (original always shows own subs).
-                        game.shapes.setColor(rgb[0] * 0.5f, rgb[1] * 0.5f, rgb[2] * 0.5f, 1f);
-                        game.shapes.circle(x, y, 7f, 8);
-                    }
+                ObjectGlyphs.Kind kind = glyphKind(unit, player.side);
+                if (!drawGlyph(kind, unit.position.x, unit.position.z)) {
+                    fallbackShape(unit, unit.position.x, -unit.position.z);
                 }
             }
         }
+        game.shapes.end();
+
+        game.shapes.begin(ShapeRenderer.ShapeType.Filled);
         game.shapes.setColor(1f, 0.85f, 0.2f, 1f);
         for (Missile missile : battle.missiles) {
             game.shapes.circle(Missile.wrapX(missile.position.x), -missile.position.z, 5f, 8);
@@ -380,6 +384,72 @@ public class BattleScreen extends ScreenAdapter {
                 game.shapes.line(ax, -trailA.z, bx, -trailB.z);
             }
             trailA.set(trailB);
+        }
+    }
+
+
+    private ObjectGlyphs.Kind glyphKind(com.invertbit.games.gtw.sim.MapUnit unit, Side side) {
+        if (unit instanceof City) {
+            return ObjectGlyphs.Kind.city;
+        }
+        if (unit instanceof Launcher) {
+            return ObjectGlyphs.forWeapon(((Launcher) unit).kind, side);
+        }
+        return ObjectGlyphs.Kind.city;
+    }
+
+    /** Stroke the original objects.svg outline at the unit, or return false to use a fallback mark. */
+    private boolean drawGlyph(ObjectGlyphs.Kind kind, float ux, float uz) {
+        if (glyphs == null || glyphs.paths(kind).isEmpty()) {
+            return false;
+        }
+        float[] off = ObjectGlyphs.offset(kind);
+        for (java.util.List<Vector3> path : glyphs.paths(kind)) {
+            Vector3 prev = path.get(0);
+            for (int i = 1; i < path.size(); i++) {
+                Vector3 next = path.get(i);
+                game.shapes.line(
+                        ux + prev.x + off[0], -(uz + prev.z + off[1]),
+                        ux + next.x + off[0], -(uz + next.z + off[1]));
+                prev = next;
+            }
+        }
+        return true;
+    }
+
+    private void fallbackShape(com.invertbit.games.gtw.sim.MapUnit unit, float x, float y) {
+        if (unit instanceof City) {
+            game.shapes.circle(x, y, 10f, 12);
+        } else if (unit instanceof Launcher) {
+            Launcher launcher = (Launcher) unit;
+            if (launcher.kind == WeaponKind.SILO) {
+                game.shapes.rect(x - 6f, y - 6f, 12f, 12f);
+            } else if (launcher.kind == WeaponKind.BOMBER) {
+                game.shapes.triangle(x, y + 9f, x - 8f, y - 7f, x + 8f, y - 7f);
+            } else {
+                game.shapes.circle(x, y, 7f, 8);
+            }
+        }
+    }
+
+    private void logUnitScreens() {
+        if (loggedUnits || !AiOff.isOn()) {
+            return;
+        }
+        loggedUnits = true;
+        for (Player player : match.sides) {
+            for (com.invertbit.games.gtw.sim.MapUnit unit : player.units) {
+                if (unit.position == null || unit instanceof Region || !battle.visible(unit)) {
+                    continue;
+                }
+                touch.set(unit.position.x, -unit.position.z, 0f);
+                mapViewport.project(touch);
+                String kind = unit instanceof City ? "CITY" : unit instanceof Launcher
+                        ? ((Launcher) unit).kind.name() : "?";
+                Gdx.app.log("GTW", "unit " + player.side + " " + kind
+                        + " world=" + unit.position.x + "," + unit.position.z
+                        + " screen=" + (int) touch.x + "," + (int) touch.y);
+            }
         }
     }
 

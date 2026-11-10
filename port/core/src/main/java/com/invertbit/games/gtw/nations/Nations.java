@@ -89,6 +89,36 @@ public final class Nations {
         return null;
     }
 
+    /** The game only ships three bomber models; new sides reuse one (tinted by side colour). */
+    public static String bomberGlyph(Side side) {
+        switch (side) {
+            case RUSSIA:
+            case AFRICA:
+                return "russiabomber";
+            case CHINA:
+            case SOUTH_AMERICA:
+                return "chinabomber";
+            default:
+                return "usabomber";
+        }
+    }
+
+    /**
+     * Translation (map x, map z) applied to a side's home outline on the Choose player /
+     * opponent screens (original {@code Nations.previewOffset}).
+     */
+    public static float[] previewOffset(Side side) {
+        switch (side) {
+            case USA: return new float[]{-180.0f, -170.0f};
+            case EUROPE: return new float[]{-150.0f, 0.0f};
+            case CHINA: return new float[]{100.0f, -195.0f};
+            case AFRICA: return new float[]{-1205.0f, -120.0f};
+            case RUSSIA: return new float[]{-820.0f, 660.0f};
+            case SOUTH_AMERICA: return new float[]{1370.0f, -125.0f};
+            default: return new float[]{0.0f, 0.0f};
+        }
+    }
+
     public static String displayName(Side side) {
         return side.name().replace('_', ' ');
     }

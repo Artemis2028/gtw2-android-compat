@@ -36,7 +36,7 @@ public class MenuScreen extends ScreenAdapter {
                 game.setScreen(new SlotScreen(game, true));
             }
         })).size(620f, 200f);
-        root.add(button("Continue", new Runnable() {
+        root.add(button("Continue game", new Runnable() {
             @Override public void run() {
                 game.setScreen(new SlotScreen(game, false));
             }

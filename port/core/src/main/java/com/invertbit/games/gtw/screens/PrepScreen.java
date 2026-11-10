@@ -44,12 +44,18 @@ public class PrepScreen extends ScreenAdapter {
             @Override public void run() {
                 startRound();
             }
-        })).size(520f, 180f);
+        })).colspan(2).size(520f, 180f);
+        root.row();
+        root.add(button("Arsenal", new Runnable() {
+            @Override public void run() {
+                game.setScreen(new ArsenalScreen(game, match));
+            }
+        })).size(420f, 160f);
         root.add(button("Alliances", new Runnable() {
             @Override public void run() {
                 game.setScreen(new AllianceScreen(game, match));
             }
-        })).size(420f, 180f);
+        })).size(420f, 160f);
         root.row();
         hint = new Label(hintText(), game.skin);
         hint.setWrap(true);
@@ -80,8 +86,15 @@ public class PrepScreen extends ScreenAdapter {
 
     private String hintText() {
         StringBuilder sb = new StringBuilder();
-        if (match.player().arsenal.empty()) {
+        com.invertbit.games.gtw.sim.Arsenal sheet = match.player().arsenal;
+        if (sheet.empty()) {
             sb.append("Nuclear arsenal is not defined. It'll be deployed automatically.");
+        } else if (sheet.noCities()) {
+            sb.append("Nuclear arsenal is defined but your population is 0. Add at least one city");
+        } else if (sheet.noWeapons()) {
+            sb.append("At least one city is added but there're no silos. Add at least on silo/bomber/submarine");
+        } else if (sheet.points > 0 && sheet.points < sheet.maxPoints) {
+            sb.append("There're points avaiable for nuclear arsenal or cities.");
         }
         if (match.alliancesOpen()) {
             if (sb.length() > 0) {
@@ -89,10 +102,20 @@ public class PrepScreen extends ScreenAdapter {
             }
             sb.append("You can choose new alliance.");
         }
+        if (!sheet.canStart()) {
+            if (sb.length() > 0) {
+                sb.append("\n");
+            }
+            sb.append("You cannot start a new DEFCON.");
+        }
         return sb.toString();
     }
 
     private void startRound() {
+        if (!match.player().arsenal.canStart()) {
+            hint.setText(hintText());
+            return;
+        }
         try {
             SaveSlots.saveCurrent(match);
         } catch (RuntimeException e) {
