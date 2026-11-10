@@ -52,7 +52,10 @@ public final class WorldMap {
     }
 
     public static Color colorFor(String regionName) {
-        Side owner = Nations.ownerOf(regionName);
+        return colorFor(regionName, Nations.ownerOf(regionName));
+    }
+
+    public static Color colorFor(String regionName, Side owner) {
         if (owner == null) {
             return UNOWNED;
         }

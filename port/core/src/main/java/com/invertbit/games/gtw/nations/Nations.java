@@ -1,12 +1,33 @@
 package com.invertbit.games.gtw.nations;
 
+import com.invertbit.games.gtw.sim.Region;
+import com.invertbit.games.gtw.sim.RegionStats;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
- * Side profile used by the port. Colours, homes and extra homes match
- * {@code com.invertbit.games.gtw.nations.Nations} in the decompiled source.
+ * Side profile used by the port. Colours, homes, extras, stats and named cities
+ * match {@code com.invertbit.games.gtw.nations.Nations} in the decompiled source.
  */
 public final class Nations {
 
+    public static final Side[] PICK_ORDER = {
+            Side.USA, Side.EUROPE, Side.CHINA,
+            Side.AFRICA, Side.RUSSIA, Side.SOUTH_AMERICA
+    };
+
+    public static final float PROJ_X0 = 1440.5f;
+    public static final float PROJ_KX = 8.069f;
+    public static final float PROJ_Z0 = 963.7f;
+    public static final float PROJ_KZ = 10.854f;
+
     private Nations() {}
+
+    public static boolean isOriginal(Side side) {
+        return side == Side.USA || side == Side.RUSSIA || side == Side.CHINA;
+    }
 
     public static RegionId home(Side side) {
         switch (side) {
@@ -49,6 +70,15 @@ public final class Nations {
         return false;
     }
 
+    public static boolean isAnyHome(RegionId region) {
+        for (Side side : Side.values()) {
+            if (isHome(side, region.name())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** The playable side that starts owning this region, or {@code null} if none. */
     public static Side ownerOf(String region) {
         for (Side side : Side.values()) {
@@ -81,5 +111,128 @@ public final class Nations {
             default:
                 return new float[]{0.0f, 0.52f, 1.0f};
         }
+    }
+
+    /** Original region stats (silos, submarines, cities). */
+    public static RegionStats stats(RegionId id) {
+        switch (id) {
+            case usa: return new RegionStats(30, 26, 6);
+            case russia: return new RegionStats(30, 26, 6);
+            case china: return new RegionStats(30, 26, 6);
+            case alaska: return new RegionStats(8, 11, 1);
+            case canada: return new RegionStats(30, 37, 5);
+            case mexico: return new RegionStats(15, 14, 4);
+            case greenland: return new RegionStats(0, 27, 0);
+            case europe: return new RegionStats(30, 25, 5);
+            case easteurope: return new RegionStats(25, 22, 5);
+            case brazil: return new RegionStats(20, 24, 5);
+            case chile: return new RegionStats(15, 20, 3);
+            case sahara: return new RegionStats(20, 24, 3);
+            case egipt: return new RegionStats(20, 24, 4);
+            case africa: return new RegionStats(30, 40, 3);
+            case middleeast: return new RegionStats(10, 13, 3);
+            case kazakhstan: return new RegionStats(8, 9, 2);
+            case india: return new RegionStats(30, 29, 5);
+            case indonesia: return new RegionStats(15, 14, 3);
+            case australia: return new RegionStats(15, 24, 3);
+            case cuba: return new RegionStats(2, 1, 1);
+            case japan: return new RegionStats(4, 3, 1);
+            default:
+                throw new IllegalArgumentException("no countrytype defined");
+        }
+    }
+
+    /**
+     * Arsenal/population profile of a region as owned in the current game.
+     * New sides get the USA superpower (30/26/6) profile on their primary home;
+     * extra homes and allied regions keep the original table.
+     */
+    public static RegionStats stats(String region, Side owner) {
+        if (owner != null && !isOriginal(owner) && home(owner).name().equalsIgnoreCase(region)) {
+            return stats(RegionId.usa);
+        }
+        return stats(RegionId.valueOf(region));
+    }
+
+    public static RegionStats stats(Region region) {
+        return stats(region.name, region.owner);
+    }
+
+    public static float[] project(double lat, double lon) {
+        return new float[]{(float) (PROJ_X0 + PROJ_KX * lon), (float) (PROJ_Z0 - PROJ_KZ * lat)};
+    }
+
+    public static final class City {
+        public final String name;
+        public final double lat;
+        public final double lon;
+        public final float x;
+        public final float z;
+
+        City(String name, double lat, double lon, float x, float z) {
+            this.name = name;
+            this.lat = lat;
+            this.lon = lon;
+            this.x = x;
+            this.z = z;
+        }
+    }
+
+    private static final City[] EUROPE_CITIES = {
+            new City("London", 51.507, -0.128, 1439, 405),
+            new City("Paris", 48.857, 2.352, 1461, 433),
+            new City("Madrid", 40.417, -3.704, 1411, 525),
+            new City("Lisbon", 38.722, -9.139, 1367, 544),
+            new City("Rome", 41.903, 12.496, 1542, 507),
+            new City("Bonn", 50.737, 7.098, 1498, 413),
+    };
+
+    private static final City[] AFRICA_CITIES = {
+            new City("Kinshasa", -4.441, 15.266, 1564, 1012),
+            new City("Lubumbashi", -11.665, 27.479, 1662, 1090),
+            new City("Nairobi", -1.286, 36.817, 1738, 978),
+            new City("Dar es Salaam", -6.792, 39.208, 1753, 1041),
+            new City("Johannesburg", -26.204, 28.047, 1667, 1248),
+            new City("Cape Town", -33.925, 18.424, 1599, 1325),
+    };
+
+    private static final City[] SOUTH_AMERICA_CITIES = {
+            new City("Sao Paulo", -23.551, -46.633, 1064, 1219),
+            new City("Buenos Aires", -34.603, -58.382, 969, 1339),
+            new City("Santiago", -33.449, -70.669, 870, 1327),
+            new City("Lima", -12.046, -77.043, 819, 1094),
+            new City("Bogota", 4.711, -74.072, 843, 913),
+            new City("Caracas", 10.480, -66.903, 901, 850),
+    };
+
+    public static List<City> cities(Side side) {
+        City[] c;
+        switch (side) {
+            case EUROPE:
+                c = EUROPE_CITIES;
+                break;
+            case AFRICA:
+                c = AFRICA_CITIES;
+                break;
+            case SOUTH_AMERICA:
+                c = SOUTH_AMERICA_CITIES;
+                break;
+            default:
+                return Collections.emptyList();
+        }
+        List<City> list = new ArrayList<City>(c.length);
+        Collections.addAll(list, c);
+        return list;
+    }
+
+    /** Real cities to place for {@code region} in this game: only when it is a new side's own primary home. */
+    public static List<City> homeCities(Region region) {
+        if (region.owner == null || isOriginal(region.owner) || !isHome(region.owner, region.name)) {
+            return Collections.emptyList();
+        }
+        if (!home(region.owner).name().equalsIgnoreCase(region.name)) {
+            return Collections.emptyList();
+        }
+        return cities(region.owner);
     }
 }

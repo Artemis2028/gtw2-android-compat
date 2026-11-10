@@ -26,8 +26,13 @@ Assets (`world.svg`, fonts, sounds, …) are reused from
   world map draws from the original `world.svg` parser with side colours
   (USA blue, Russia orange, China green, Europe violet, Africa yellow,
   South America pink; Alaska painted as USA, Chile as South America).
-- **M2:** match setup + battle sim (launches, cities, DEFCON, alliances) with HUD,
-  pause and 1x/2x/4x speed.
+- **M2:** match setup + battle sim (launches, cities, DEFCON, alliances/`RoundSetup`)
+  with a scene2d HUD, `BattlePause`, 1x/2x/4x speed and AI-off. DEFCON countdown
+  is 5 seconds (as in `Caj`). Missile flight time is `distance * (yield/2) / 100`
+  seconds (as in `b.d.Cm`). Launch budget is concurrent in-flight missiles
+  (human 8/6/5 by EASY/NORMAL/HARD, AI 4, +2 per ally). Silo/sub ammo is 10 and
+  bomber ammo is 1, matching `b.b.Ca`. Setup defaults DEFCON to 5 (the original
+  picker's default is not obvious from the decompile).
 - **M3:** settings, save slots/autosave, post-match `MatchStats`, sound; parity
   against the decompiled `src/` build (nato11).
 

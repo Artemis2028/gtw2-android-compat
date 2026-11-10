@@ -16,4 +16,8 @@ public final class AiOff {
     public static boolean isOn() {
         return on;
     }
+
+    public static void reset() {
+        on = false;
+    }
 }
