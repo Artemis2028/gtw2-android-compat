@@ -28,7 +28,7 @@ import java.util.List;
  *       Brazil's outline plus the rest of South America as chile)</li>
  * </ul>
  * The original USA side also starts with {@code alaska} next to {@code usa}.
- * Neighbouring regions ({@code sahara}, {@code egipt}, {@code easteurope}, ...) stay as
+ * Neighbouring regions ({@code sahara}, {@code egypt}, {@code easteurope}, ...) stay as
  * alliable countries, exactly like Canada/Mexico are for the USA.
  */
 public final class Nations {

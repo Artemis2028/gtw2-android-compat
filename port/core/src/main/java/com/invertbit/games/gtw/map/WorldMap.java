@@ -12,8 +12,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Region outlines loaded from {@code world.svg}. The first path of each name wins,
- * matching {@code gtw.b.a.Ca.regions} in the decompiled source.
+ * Region outlines loaded from {@code world.svg}. Every named path is kept so
+ * multi-part regions (NATO islands, Pacific, Russia+Kazakhstan, etc.) render
+ * and can be hit; {@link #byName} points at the first outline of that name.
  */
 public final class WorldMap {
 
@@ -41,12 +42,11 @@ public final class WorldMap {
             if (path.name == null || path.points().size() < 2) {
                 continue;
             }
-            if (map.byName.containsKey(path.name)) {
-                continue;
-            }
             Outline outline = new Outline(path.name, path.points());
             map.outlines.add(outline);
-            map.byName.put(path.name, outline);
+            if (!map.byName.containsKey(path.name)) {
+                map.byName.put(path.name, outline);
+            }
         }
         return map;
     }

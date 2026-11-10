@@ -118,14 +118,12 @@ public final class Cc {
                 return new com.invertbit.games.gtw.b.Cf.Ia(15, 20, 3);
             case sahara:
                 return new com.invertbit.games.gtw.b.Cf.Ia(20, 24, 3);
-            case egipt:
+            case egypt:
                 return new com.invertbit.games.gtw.b.Cf.Ia(20, 24, 4);
             case africa:
                 return new com.invertbit.games.gtw.b.Cf.Ia(30, 40, 3);
             case middleeast:
                 return new com.invertbit.games.gtw.b.Cf.Ia(10, 13, 3);
-            case kazakhstan:
-                return new com.invertbit.games.gtw.b.Cf.Ia(8, 9, 2);
             case india:
                 return new com.invertbit.games.gtw.b.Cf.Ia(30, 29, 5);
             case indonesia:
@@ -134,8 +132,8 @@ public final class Cc {
                 return new com.invertbit.games.gtw.b.Cf.Ia(15, 24, 3);
             case cuba:
                 return new com.invertbit.games.gtw.b.Cf.Ia(2, 1, 1);
-            case japan:
-                return new com.invertbit.games.gtw.b.Cf.Ia(4, 3, 1);
+            case pacific:
+                return new com.invertbit.games.gtw.b.Cf.Ia(15, 14, 3);
             default:
                 throw new java.lang.IllegalArgumentException("no countrytype defined");
         }

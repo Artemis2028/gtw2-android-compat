@@ -114,4 +114,22 @@ public class NationsTest {
         assertTrue(tables.offer(Side.EUROPE, 9).containsAll(java.util.Arrays.asList(RegionId.usa, RegionId.russia, RegionId.china)));
         assertFalse(tables.offer(Side.EUROPE, 8).contains(RegionId.usa));
     }
+
+    @Test
+    public void regionDisplayNamesAndPacificStats() {
+        assertEquals("Egypt", Nations.displayName(RegionId.egypt));
+        assertEquals("East Europe", Nations.displayName(RegionId.easteurope));
+        assertEquals("Middle East", Nations.displayName(RegionId.middleeast));
+        assertEquals("Pacific", Nations.displayName(RegionId.pacific));
+        assertEquals("USA", Nations.displayName(RegionId.usa));
+        assertEquals("Russia", Nations.displayName(RegionId.russia));
+        com.invertbit.games.gtw.sim.RegionStats pacific = Nations.stats(RegionId.pacific);
+        assertEquals(15, pacific.silos);
+        assertEquals(14, pacific.submarines);
+        assertEquals(3, pacific.cities);
+        com.invertbit.games.gtw.sim.RegionStats russia = Nations.stats(RegionId.russia);
+        assertEquals(30, russia.silos);
+        assertEquals(26, russia.submarines);
+        assertEquals(6, russia.cities);
+    }
 }

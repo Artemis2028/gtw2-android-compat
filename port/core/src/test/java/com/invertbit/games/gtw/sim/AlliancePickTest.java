@@ -68,9 +68,9 @@ public class AlliancePickTest {
         Match match = Match.create(Side.SOUTH_AMERICA, Side.RUSSIA, 0);
         AlliancePicker picker = AlliancePicker.get();
         assertTrue(picker.eligible(match).isEmpty());
-        Region kazakhstan = WorldRegions.get().get("kazakhstan");
-        assertNotNull(kazakhstan);
-        assertFalse(picker.tryPick(match, kazakhstan));
+        Region canada = WorldRegions.get().get("canada");
+        assertNotNull(canada);
+        assertFalse(picker.tryPick(match, canada));
         assertEquals(2, match.player().regionCount());
     }
 
@@ -79,14 +79,44 @@ public class AlliancePickTest {
         Match match = Match.create(Side.SOUTH_AMERICA, Side.RUSSIA, 2);
         AlliancePicker picker = AlliancePicker.get();
         assertTrue(match.alliancesOpen());
+        assertEquals(0, match.alliesPicked());
         List<Region> offered = picker.eligible(match);
         assertFalse(offered.isEmpty());
         Region pick = offered.get(0);
         assertFalse("opponent home must not be offered", "russia".equals(pick.name));
         assertTrue(picker.tryPick(match, pick));
         assertEquals(3, match.player().regionCount());
+        assertEquals(1, match.alliesPicked());
         assertEquals(Side.SOUTH_AMERICA, pick.owner);
+        assertTrue("two-home side can still pick a second ally at DEFCON 2", match.alliancesOpen());
+        offered = picker.eligible(match);
+        assertFalse(offered.isEmpty());
+        Region pick2 = offered.get(0);
+        assertTrue(picker.tryPick(match, pick2));
+        assertEquals(4, match.player().regionCount());
+        assertEquals(2, match.alliesPicked());
         assertTrue("markers hide once r >= defcon", picker.eligible(match).isEmpty());
         assertFalse(match.alliancesOpen());
+    }
+
+    @Test
+    public void twoHomeSideCountsAsOneOwnedForAllyOffer() {
+        Match usa = Match.create(Side.USA, Side.RUSSIA, 1);
+        assertEquals(2, usa.player().regionCount());
+        assertEquals(1, usa.player().allianceOwnedCount());
+        assertEquals(0, usa.alliesPicked());
+        assertTrue("USA+alaska count as one owned region, so DEFCON 1 opens alliances",
+                usa.alliancesOpen());
+        assertFalse(AlliancePicker.get().eligible(usa).isEmpty());
+
+        Match europe = Match.create(Side.EUROPE, Side.RUSSIA, 1);
+        assertEquals(1, europe.player().regionCount());
+        assertEquals(1, europe.player().allianceOwnedCount());
+        assertEquals(0, europe.alliesPicked());
+        assertTrue(europe.alliancesOpen());
+
+        Match usaClosed = Match.create(Side.USA, Side.CHINA, 0);
+        assertFalse(usaClosed.alliancesOpen());
+        assertTrue(AlliancePicker.get().eligible(usaClosed).isEmpty());
     }
 }

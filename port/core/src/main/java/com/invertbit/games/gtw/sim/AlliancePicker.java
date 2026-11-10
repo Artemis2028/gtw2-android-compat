@@ -34,7 +34,7 @@ public final class AlliancePicker {
     }
 
     public void assignAllies(int defcon, Player player) {
-        int owned = player.regionCount();
+        int owned = player.allianceOwnedCount();
         if (owned <= defcon) {
             List<RegionId> pool = tables.offer(player.side, defcon);
             Collections.shuffle(pool);
@@ -87,15 +87,15 @@ public final class AlliancePicker {
     }
 
     /**
-     * Manual pick (original {@code c.Cr}): reject if {@code r > defcon} or the
-     * player already owns the region; otherwise add it (which increments {@code r}).
+     * Manual pick: reject unless {@code r < defcon} (the owned-1 &lt; DEFCON
+     * offer rule) and the player does not already own the region.
      */
     public boolean tryPick(Match match, Region region) {
         if (region == null) {
             return false;
         }
         int r = match.alliesPicked();
-        if (r > match.defcon || match.player().owns(region)) {
+        if (r >= match.defcon || match.player().owns(region)) {
             return false;
         }
         match.player().add(region);

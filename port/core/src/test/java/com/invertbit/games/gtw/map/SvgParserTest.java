@@ -56,4 +56,24 @@ public class SvgParserTest {
             assertTrue(id + ": outline too short", outline.points.size() >= 3);
         }
     }
+
+    @Test
+    public void namedRegionsKeepEveryPath() throws Exception {
+        WorldMap map = WorldMap.load(new FileInputStream(SVG));
+        int europe = 0;
+        int pacific = 0;
+        int russia = 0;
+        for (WorldMap.Outline outline : map.outlines) {
+            if ("europe".equals(outline.name)) {
+                europe++;
+            } else if ("pacific".equals(outline.name)) {
+                pacific++;
+            } else if ("russia".equals(outline.name)) {
+                russia++;
+            }
+        }
+        assertTrue("europe should keep NATO pieces, not just the first path: " + europe, europe > 1);
+        assertTrue("pacific should keep Japan + Korea + Philippines: " + pacific, pacific > 1);
+        assertTrue("russia should include the former Kazakhstan path: " + russia, russia > 1);
+    }
 }

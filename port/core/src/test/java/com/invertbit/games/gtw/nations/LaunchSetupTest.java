@@ -217,7 +217,7 @@ public class LaunchSetupTest {
     }
 
     @Test
-    public void twoHomeSidesGetOneAllyFewer() throws Exception {
+    public void twoHomeSidesCountAsOneOwnedForAllyOffers() throws Exception {
         for (int defcon = 0; defcon <= 3; defcon++) {
             for (Side side : Side.values()) {
                 freshSingletons();
@@ -226,12 +226,11 @@ public class LaunchSetupTest {
                 Match match = newGame(side, other, defcon, regions, false);
                 int homes = 1 + Nations.extraHomes(side).length;
                 int allies = match.player().regions().size() - homes;
-                int expected = Math.max(0, defcon - (homes - 1));
+                int expected = defcon;
                 assertTrue(side + " at DEFCON " + defcon + ": " + allies + " allies, rule allows " + expected,
                         allies <= expected);
-                if (homes == 2 && defcon <= 1) {
-                    assertEquals(side + " has no allies at DEFCON " + defcon, 0, allies);
-                }
+                assertEquals(side + " alliance-owned count",
+                        1 + allies, match.player().allianceOwnedCount());
             }
         }
     }

@@ -58,7 +58,7 @@ public final class Match {
 
     /** Alliance picks still open for the player: original {@code r < c} with {@code r = countries - 1}. */
     public int alliesPicked() {
-        return player().regionCount() - 1;
+        return player().allianceOwnedCount() - 1;
     }
 
     public Player addSide(Side side, boolean human) {
@@ -100,7 +100,7 @@ public final class Match {
 
     /** Original alliance UI predicate: {@code player.countries - 1 < defcon}. */
     public boolean alliancesOpen() {
-        return player().regionCount() - 1 < defcon;
+        return player().allianceOwnedCount() - 1 < defcon;
     }
 
     /**

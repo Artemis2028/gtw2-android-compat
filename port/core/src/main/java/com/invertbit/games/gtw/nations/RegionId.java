@@ -14,13 +14,12 @@ public enum RegionId {
     brazil,
     chile,
     sahara,
-    egipt,
+    egypt,
     africa,
     middleeast,
-    kazakhstan,
     india,
     indonesia,
     australia,
     cuba,
-    japan
+    pacific
 }

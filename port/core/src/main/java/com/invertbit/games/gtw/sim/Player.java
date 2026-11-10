@@ -1,6 +1,7 @@
 package com.invertbit.games.gtw.sim;
 
 import com.invertbit.games.gtw.nations.Nations;
+import com.invertbit.games.gtw.nations.RegionId;
 import com.invertbit.games.gtw.nations.Side;
 
 import java.util.ArrayList;
@@ -119,6 +120,23 @@ public final class Player {
 
     public int regionCount() {
         return regions().size();
+    }
+
+    /**
+     * Owned extras of a two-home side (alaska, chile) count with the primary
+     * home as one region for the {@code owned - 1 < DEFCON} alliance rule.
+     */
+    public int allianceOwnedCount() {
+        int extras = 0;
+        for (RegionId extra : Nations.extraHomes(side)) {
+            for (Region region : regions()) {
+                if (extra.name().equals(region.name)) {
+                    extras++;
+                    break;
+                }
+            }
+        }
+        return regionCount() - extras;
     }
 
     public boolean owns(Region region) {

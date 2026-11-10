@@ -123,6 +123,31 @@ public final class Nations {
         return side.name().replace('_', ' ');
     }
 
+    /** User-visible region label. Internal ids stay lowercase enum names. */
+    public static String displayName(RegionId id) {
+        switch (id) {
+            case usa: return "USA";
+            case easteurope: return "East Europe";
+            case egypt: return "Egypt";
+            case middleeast: return "Middle East";
+            case pacific: return "Pacific";
+            default:
+                String n = id.name();
+                return Character.toUpperCase(n.charAt(0)) + n.substring(1);
+        }
+    }
+
+    public static String displayName(String region) {
+        if (region == null) {
+            return null;
+        }
+        try {
+            return displayName(RegionId.valueOf(region));
+        } catch (IllegalArgumentException e) {
+            return region;
+        }
+    }
+
     /** Base RGB of a side (USA/RUSSIA/CHINA keep their original hand-tuned colours). */
     public static float[] rgb(Side side) {
         switch (side) {
@@ -158,15 +183,14 @@ public final class Nations {
             case brazil: return new RegionStats(20, 24, 5);
             case chile: return new RegionStats(15, 20, 3);
             case sahara: return new RegionStats(20, 24, 3);
-            case egipt: return new RegionStats(20, 24, 4);
+            case egypt: return new RegionStats(20, 24, 4);
             case africa: return new RegionStats(30, 40, 3);
             case middleeast: return new RegionStats(10, 13, 3);
-            case kazakhstan: return new RegionStats(8, 9, 2);
             case india: return new RegionStats(30, 29, 5);
             case indonesia: return new RegionStats(15, 14, 3);
             case australia: return new RegionStats(15, 24, 3);
             case cuba: return new RegionStats(2, 1, 1);
-            case japan: return new RegionStats(4, 3, 1);
+            case pacific: return new RegionStats(15, 14, 3);
             default:
                 throw new IllegalArgumentException("no countrytype defined");
         }
