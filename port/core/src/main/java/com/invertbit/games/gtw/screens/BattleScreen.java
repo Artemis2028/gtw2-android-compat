@@ -17,6 +17,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.invertbit.games.gtw.AiOff;
@@ -164,19 +165,26 @@ public class BattleScreen extends ScreenAdapter {
                 pause.pause();
             }
         });
-        // Top bar: speed (left, large) · spacer · pause (right). Status sits on its own row
-        // below so nothing overlaps the buttons.
-        root.add(speedButton).size(380f, 120f).left().pad(16f);
-        root.add().expandX();
-        root.add(pauseButton).size(240f, 120f).right().pad(16f);
-        root.row();
+        // Top bar: speed · centered pop/wpn status · pause. Status used to sit on a
+        // second row at the left edge, which drew across Alaska (and any other
+        // northern land under that strip). Keeping it between the buttons puts it
+        // in the padded chrome above the continents.
+        root.add(speedButton).size(BattleHudLayout.SPEED_WIDTH, BattleHudLayout.SPEED_HEIGHT)
+                .left().pad(BattleHudLayout.TOP_PAD);
         status = new Label("", game.skin);
-        root.add(status).colspan(3).expandX().left().padLeft(20f);
+        status.setAlignment(Align.center);
+        status.setWrap(true);
+        root.add(status).expandX().fillX().center()
+                .padLeft(BattleHudLayout.STATUS_INSET).padRight(BattleHudLayout.STATUS_INSET)
+                .padTop(BattleHudLayout.STATUS_PAD_TOP).padBottom(BattleHudLayout.STATUS_PAD_BOTTOM);
+        root.add(pauseButton).size(BattleHudLayout.PAUSE_WIDTH, BattleHudLayout.SPEED_HEIGHT)
+                .right().pad(BattleHudLayout.TOP_PAD);
         root.row();
         if (AiOff.isOn()) {
             Label ai = new Label("AI OFF", game.skin);
             ai.setColor(1f, 0.9f, 0.2f, 1f);
-            root.add(ai).colspan(3).left().padLeft(20f);
+            ai.setAlignment(Align.center);
+            root.add(ai).colspan(3).center().padTop(4f);
             root.row();
         }
         ticker = new Label("", game.skin);
