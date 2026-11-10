@@ -79,15 +79,13 @@ public class ArsenalScreen extends ScreenAdapter {
     private Table card(final String title, ObjectGlyphs.Kind kind, final YieldRow row, String slots) {
         Table card = new Table();
         Label name = new Label(title, game.skin, "title");
-        card.add(name).padTop(12f);
+        card.add(name).padTop(8f);
         card.row();
-        Label icon = new Label(iconCaption(kind), game.skin);
-        icon.setColor(new Color(Nations.rgb(match.player().side)[0],
-                Nations.rgb(match.player().side)[1], Nations.rgb(match.player().side)[2], 1f));
-        card.add(icon).pad(16f);
+        // Room for the objects.svg outline drawn on top of the card.
+        card.add().height(160f);
         card.row();
         Label sub = new Label(slots, game.skin);
-        card.add(sub).padBottom(16f);
+        card.add(sub).padBottom(12f);
         card.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
