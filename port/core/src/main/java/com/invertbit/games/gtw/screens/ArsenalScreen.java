@@ -5,6 +5,7 @@ import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -34,6 +35,8 @@ public class ArsenalScreen extends ScreenAdapter {
     private final Match match;
     private final Stage stage;
     private ObjectGlyphs glyphs;
+    private final Table[] cards = new Table[4];
+    private int cardIndex;
 
     public ArsenalScreen(GtwGame game, Match match) {
         this.game = game;
@@ -58,6 +61,7 @@ public class ArsenalScreen extends ScreenAdapter {
         root.setFillParent(true);
         root.defaults().pad(12f);
         Arsenal sheet = match.player().arsenal;
+        cardIndex = 0;
         root.add(card("Population", ObjectGlyphs.Kind.city, sheet.city,
                 "Slots avaiable: " + sheet.city.count() + "/" + sheet.populationCount)).size(520f, 340f);
         root.add(card("ICBM silos", ObjectGlyphs.Kind.silo, sheet.silo,
@@ -93,6 +97,9 @@ public class ArsenalScreen extends ScreenAdapter {
                 game.setScreen(new ArsenalEditScreen(game, match, row));
             }
         });
+        if (cardIndex < cards.length) {
+            cards[cardIndex++] = card;
+        }
         return card;
     }
 
@@ -139,17 +146,27 @@ public class ArsenalScreen extends ScreenAdapter {
                 ObjectGlyphs.Kind.city, ObjectGlyphs.Kind.silo,
                 ObjectGlyphs.bomber(match.player().side), ObjectGlyphs.Kind.submarine
         };
-        // Card centres in 1920x1080 UI: two columns (approx 640, 1280) x two rows (360, 720)
-        float[][] centres = {{560f, 720f}, {1360f, 720f}, {560f, 380f}, {1360f, 380f}};
         game.shapes.setProjectionMatrix(stage.getViewport().getCamera().combined);
         game.shapes.begin(ShapeRenderer.ShapeType.Line);
         game.shapes.setColor(rgb[0], rgb[1], rgb[2], 1f);
+        Vector2 centre = new Vector2();
         for (int i = 0; i < kinds.length; i++) {
             float[] off = ObjectGlyphs.offset(kinds[i]);
             // Scale glyphs ~2x so they read on the 500x360 card.
             float scale = 2.2f;
-            float cx = centres[i][0];
-            float cy = centres[i][1];
+            Table card = cards[i];
+            float cx;
+            float cy;
+            if (card != null) {
+                // Sit in the reserved middle cell, above the "Slots avaiable" caption.
+                centre.set(card.getWidth() * 0.5f, card.getHeight() * 0.52f);
+                card.localToStageCoordinates(centre);
+                cx = centre.x;
+                cy = centre.y;
+            } else {
+                cx = (i % 2 == 0) ? 560f : 1360f;
+                cy = (i < 2) ? 720f : 380f;
+            }
             for (java.util.List<Vector3> path : glyphs.paths(kinds[i])) {
                 Vector3 prev = path.get(0);
                 for (int p = 1; p < path.size(); p++) {
