@@ -18,8 +18,8 @@ android {
         applicationId 'com.invertbit.games.gtw.android.port'
         minSdk 21
         targetSdk 35
-        versionCode 11
-        versionName '1.11-port-m11'
+        versionCode 13
+        versionName '1.13-port-m13'
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -27,7 +27,7 @@ android {
     }
     sourceSets {
         main {
-            assets.srcDirs = ['../../src/android/src/main/assets']
+            assets.srcDirs = ['src/main/assets', '../../src/android/src/main/assets']
             jniLibs.srcDirs = ["$buildDir/natives"]
         }
     }

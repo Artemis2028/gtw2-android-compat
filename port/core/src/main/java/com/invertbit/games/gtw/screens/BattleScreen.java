@@ -7,6 +7,8 @@ import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -15,6 +17,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.invertbit.games.gtw.AiOff;
@@ -28,6 +31,7 @@ import com.invertbit.games.gtw.nations.Side;
 import com.invertbit.games.gtw.sim.Battle;
 import com.invertbit.games.gtw.sim.BattlePause;
 import com.invertbit.games.gtw.sim.City;
+import com.invertbit.games.gtw.sim.Explosion;
 import com.invertbit.games.gtw.sim.Launcher;
 import com.invertbit.games.gtw.sim.Match;
 import com.invertbit.games.gtw.sim.Missile;
@@ -56,9 +60,12 @@ public class BattleScreen extends ScreenAdapter {
     private TextButton overlaySpeedButton;
     private TextButton pauseButton;
     private int impactsSeen;
+    private int siloLaunchesSeen;
+    private int subLaunchesSeen;
     private Label status;
     private Label ticker;
     private boolean shownGameOver;
+    private Texture bloom;
 
     public BattleScreen(GtwGame game, Match match) {
         this.game = game;
@@ -158,19 +165,26 @@ public class BattleScreen extends ScreenAdapter {
                 pause.pause();
             }
         });
-        // Top bar: speed (left, large) · spacer · pause (right). Status sits on its own row
-        // below so nothing overlaps the buttons.
-        root.add(speedButton).size(380f, 120f).left().pad(16f);
-        root.add().expandX();
-        root.add(pauseButton).size(240f, 120f).right().pad(16f);
-        root.row();
+        // Top bar: speed · centered pop/wpn status · pause. Status used to sit on a
+        // second row at the left edge, which drew across Alaska (and any other
+        // northern land under that strip). Keeping it between the buttons puts it
+        // in the padded chrome above the continents.
+        root.add(speedButton).size(BattleHudLayout.SPEED_WIDTH, BattleHudLayout.SPEED_HEIGHT)
+                .left().pad(BattleHudLayout.TOP_PAD);
         status = new Label("", game.skin);
-        root.add(status).colspan(3).expandX().left().padLeft(20f);
+        status.setAlignment(Align.center);
+        status.setWrap(true);
+        root.add(status).expandX().fillX().center()
+                .padLeft(BattleHudLayout.STATUS_INSET).padRight(BattleHudLayout.STATUS_INSET)
+                .padTop(BattleHudLayout.STATUS_PAD_TOP).padBottom(BattleHudLayout.STATUS_PAD_BOTTOM);
+        root.add(pauseButton).size(BattleHudLayout.PAUSE_WIDTH, BattleHudLayout.SPEED_HEIGHT)
+                .right().pad(BattleHudLayout.TOP_PAD);
         root.row();
         if (AiOff.isOn()) {
             Label ai = new Label("AI OFF", game.skin);
             ai.setColor(1f, 0.9f, 0.2f, 1f);
-            root.add(ai).colspan(3).left().padLeft(20f);
+            ai.setAlignment(Align.center);
+            root.add(ai).colspan(3).center().padTop(4f);
             root.row();
         }
         ticker = new Label("", game.skin);
@@ -271,6 +285,20 @@ public class BattleScreen extends ScreenAdapter {
             impactsSeen = battle.impacts;
             Sounds.playImpact();
         }
+        if (battle.siloLaunches > siloLaunchesSeen) {
+            int extra = battle.siloLaunches - siloLaunchesSeen;
+            siloLaunchesSeen = battle.siloLaunches;
+            for (int i = 0; i < extra; i++) {
+                Sounds.playSiloLaunch();
+            }
+        }
+        if (battle.subLaunches > subLaunchesSeen) {
+            int extra = battle.subLaunches - subLaunchesSeen;
+            subLaunchesSeen = battle.subLaunches;
+            for (int i = 0; i < extra; i++) {
+                Sounds.playSubLaunch();
+            }
+        }
         if (battle.finished && !shownGameOver) {
             shownGameOver = true;
             game.setScreen(new GameOverScreen(game, match));
@@ -282,6 +310,7 @@ public class BattleScreen extends ScreenAdapter {
         game.shapes.setProjectionMatrix(camera.combined);
         drawMap();
         drawUnits();
+        drawExplosions();
         logUnitScreens();
         updateLabels();
         if (pause.overlayVisible()) {
@@ -346,8 +375,15 @@ public class BattleScreen extends ScreenAdapter {
                     game.shapes.setColor(rgb[0], rgb[1], rgb[2], 1f);
                 }
                 ObjectGlyphs.Kind kind = glyphKind(unit, player.side);
-                if (!drawGlyph(kind, unit.position.x, unit.position.z)) {
-                    fallbackShape(unit, unit.position.x, -unit.position.z);
+                float heading = 0f;
+                if (unit instanceof Launcher) {
+                    Launcher launcher = (Launcher) unit;
+                    if (launcher.kind == WeaponKind.BOMBER && launcher.isMoving()) {
+                        heading = launcher.headingDegrees();
+                    }
+                }
+                if (!drawGlyph(kind, unit.position.x, unit.position.z, heading)) {
+                    fallbackShape(unit, unit.position.x, -unit.position.z, heading);
                 }
             }
         }
@@ -399,25 +435,39 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     /** Stroke the original objects.svg outline at the unit, or return false to use a fallback mark. */
-    private boolean drawGlyph(ObjectGlyphs.Kind kind, float ux, float uz) {
+    private boolean drawGlyph(ObjectGlyphs.Kind kind, float ux, float uz, float headingDegrees) {
         if (glyphs == null || glyphs.paths(kind).isEmpty()) {
             return false;
         }
         float[] off = ObjectGlyphs.offset(kind);
+        float rad = headingDegrees * (float) Math.PI / 180f;
+        float cos = (float) Math.cos(rad);
+        float sin = (float) Math.sin(rad);
         for (java.util.List<Vector3> path : glyphs.paths(kind)) {
             Vector3 prev = path.get(0);
             for (int i = 1; i < path.size(); i++) {
                 Vector3 next = path.get(i);
-                game.shapes.line(
-                        ux + prev.x + off[0], -(uz + prev.z + off[1]),
-                        ux + next.x + off[0], -(uz + next.z + off[1]));
+                float px = rotateX(prev.x + off[0], prev.z + off[1], cos, sin);
+                float pz = rotateZ(prev.x + off[0], prev.z + off[1], cos, sin);
+                float nx = rotateX(next.x + off[0], next.z + off[1], cos, sin);
+                float nz = rotateZ(next.x + off[0], next.z + off[1], cos, sin);
+                game.shapes.line(ux + px, -(uz + pz), ux + nx, -(uz + nz));
                 prev = next;
             }
         }
         return true;
     }
 
-    private void fallbackShape(com.invertbit.games.gtw.sim.MapUnit unit, float x, float y) {
+    /** Rotate an XZ glyph point around the origin. 0 deg keeps the native north-facing nose. */
+    private static float rotateX(float x, float z, float cos, float sin) {
+        return x * cos + z * sin;
+    }
+
+    private static float rotateZ(float x, float z, float cos, float sin) {
+        return -x * sin + z * cos;
+    }
+
+    private void fallbackShape(com.invertbit.games.gtw.sim.MapUnit unit, float x, float y, float headingDegrees) {
         if (unit instanceof City) {
             game.shapes.circle(x, y, 10f, 12);
         } else if (unit instanceof Launcher) {
@@ -425,7 +475,14 @@ public class BattleScreen extends ScreenAdapter {
             if (launcher.kind == WeaponKind.SILO) {
                 game.shapes.rect(x - 6f, y - 6f, 12f, 12f);
             } else if (launcher.kind == WeaponKind.BOMBER) {
-                game.shapes.triangle(x, y + 9f, x - 8f, y - 7f, x + 8f, y - 7f);
+                float rad = headingDegrees * (float) Math.PI / 180f;
+                float cos = (float) Math.cos(rad);
+                float sin = (float) Math.sin(rad);
+                // Fallback tip is +Y (north), matching the SVG bomber nose.
+                game.shapes.triangle(
+                        x + rotateX(0f, -9f, cos, sin), y - rotateZ(0f, -9f, cos, sin),
+                        x + rotateX(-8f, 7f, cos, sin), y - rotateZ(-8f, 7f, cos, sin),
+                        x + rotateX(8f, 7f, cos, sin), y - rotateZ(8f, 7f, cos, sin));
             } else {
                 game.shapes.circle(x, y, 7f, 8);
             }
@@ -480,13 +537,78 @@ public class BattleScreen extends ScreenAdapter {
         camera.update();
     }
 
+    /**
+     * 2D stand-in for the original white {@code explosionObject} / {@code rocketobject}
+     * ellipsoid: a soft radial disc, white, alpha 0.5, additive blend (the shader
+     * blew out RGB via {@code 1/sin} which reads as a bloom). Size and lifetime
+     * come from {@link Explosion}.
+     */
+    private void drawExplosions() {
+        if (battle.explosions.isEmpty()) {
+            return;
+        }
+        Texture texture = bloomTexture();
+        game.batch.setProjectionMatrix(camera.combined);
+        game.batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+        game.batch.begin();
+        for (Explosion flash : battle.explosions) {
+            float radius = flash.radius();
+            float x = Missile.wrapX(flash.x);
+            float y = -flash.z;
+            game.batch.setColor(1f, 1f, 1f, flash.alpha());
+            game.batch.draw(texture, x - radius, y - radius, radius * 2f, radius * 2f);
+            if (x - radius < 0f) {
+                game.batch.draw(texture, x - radius + Explosion.WORLD_WIDTH, y - radius,
+                        radius * 2f, radius * 2f);
+            } else if (x + radius > Explosion.WORLD_WIDTH) {
+                game.batch.draw(texture, x - radius - Explosion.WORLD_WIDTH, y - radius,
+                        radius * 2f, radius * 2f);
+            }
+        }
+        game.batch.end();
+        game.batch.setColor(Color.WHITE);
+        game.batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    }
+
+    private Texture bloomTexture() {
+        if (bloom != null) {
+            return bloom;
+        }
+        int size = 128;
+        float center = (size - 1) * 0.5f;
+        Pixmap pixmap = new Pixmap(size, size, Pixmap.Format.RGBA8888);
+        for (int y = 0; y < size; y++) {
+            for (int x = 0; x < size; x++) {
+                float dx = (x - center) / center;
+                float dy = (y - center) / center;
+                float dist = (float) Math.sqrt(dx * dx + dy * dy);
+                float falloff = dist >= 1f ? 0f : (1f - dist) * (1f - dist);
+                pixmap.setColor(1f, 1f, 1f, falloff);
+                pixmap.drawPixel(x, y);
+            }
+        }
+        bloom = new Texture(pixmap);
+        bloom.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        pixmap.dispose();
+        return bloom;
+    }
+
+    private void disposeBloom() {
+        if (bloom != null) {
+            bloom.dispose();
+            bloom = null;
+        }
+    }
+
     @Override
     public void hide() {
         Gdx.input.setInputProcessor(null);
+        disposeBloom();
     }
 
     @Override
     public void dispose() {
+        disposeBloom();
         hud.dispose();
         overlay.dispose();
     }
