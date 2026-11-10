@@ -17,6 +17,7 @@ public final class GameSettings {
 
     public static final float BUTTON_BASE = 0.45f;
     public static final float IMPACT_BASE = 1.0f;
+    public static final float LAUNCH_BASE = 1.0f;
 
     private static GameSettings INSTANCE = new GameSettings();
 
