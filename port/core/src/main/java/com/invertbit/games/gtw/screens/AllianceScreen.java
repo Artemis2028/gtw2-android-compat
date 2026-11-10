@@ -120,7 +120,7 @@ public class AllianceScreen extends ScreenAdapter {
     }
 
     private String titleText() {
-        return match.alliancesOpen() ? "Choose alliance" : "Alliances map";
+        return match.alliancesOpen() ? "CHOOSE ALLIANCE" : "ALLIANCES MAP";
     }
 
     private String noteText() {
@@ -181,6 +181,9 @@ public class AllianceScreen extends ScreenAdapter {
     }
 
     private static Vector3 markerAt(Region region) {
+        if (region.marker != null) {
+            return region.marker;
+        }
         if (region.label != null && region.label.origin != null) {
             return region.label.origin;
         }
@@ -208,7 +211,7 @@ public class AllianceScreen extends ScreenAdapter {
             return;
         }
         game.shapes.begin(ShapeRenderer.ShapeType.Line);
-        for (WorldMap.Outline outline : map.outlines) {
+        for (WorldMap.Outline outline : map.drawableOutlines()) {
             game.shapes.setColor(WorldMap.colorFor(outline.name, ownerOf(outline.name)));
             Vector3 prev = outline.points.get(0);
             for (int i = 1; i < outline.points.size(); i++) {

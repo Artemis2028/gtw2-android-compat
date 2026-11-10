@@ -104,8 +104,10 @@ public final class Nations {
     }
 
     /**
-     * Translation (map x, map z) applied to a side's home outline on the Choose player /
-     * opponent screens (original {@code Nations.previewOffset}).
+     * Translation (map x, map z) from the original {@code Nations.previewOffset}.
+     * The port's choose-player / choose-opponent screens no longer apply this:
+     * they scale and center each side's home outlines in a 2x3 cell grid
+     * ({@code NationPreviewLayout}) so every silhouette fits above the buttons.
      */
     public static float[] previewOffset(Side side) {
         switch (side) {

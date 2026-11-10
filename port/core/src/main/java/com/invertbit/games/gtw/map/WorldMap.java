@@ -13,8 +13,12 @@ import java.util.Map;
 
 /**
  * Region outlines loaded from {@code world.svg}. Every named path is kept so
- * multi-part regions (NATO islands, Pacific, Russia+Kazakhstan, etc.) render
- * and can be hit; {@link #byName} points at the first outline of that name.
+ * multi-part regions (NATO islands, Pacific, Russia far-east, etc.) can be hit;
+ * {@link #byName} points at the first outline of that name.
+ *
+ * <p>Touching rings of the same region are dissolved in {@code world.svg}.
+ * Separate starting-home regions that touch (brazil and chile) keep their own
+ * outlines and are drawn separately.
  */
 public final class WorldMap {
 
@@ -49,6 +53,11 @@ public final class WorldMap {
             }
         }
         return map;
+    }
+
+    /** Outlines to stroke on pick / alliance / battle / map screens. */
+    public List<Outline> drawableOutlines() {
+        return outlines;
     }
 
     public static Color colorFor(String regionName) {

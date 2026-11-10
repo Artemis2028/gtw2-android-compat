@@ -11,6 +11,8 @@ public final class Region extends MapUnit implements Comparable<Region> {
     public final String name;
     public SvgRect label;
     public List<Vector3> grid = new ArrayList<Vector3>();
+    /** Interior point of the largest landmass; used for alliance markers. */
+    public Vector3 marker;
 
     public Region(String name) {
         super(null);

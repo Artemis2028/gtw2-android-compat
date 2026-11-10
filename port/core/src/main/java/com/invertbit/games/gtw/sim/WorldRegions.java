@@ -15,6 +15,8 @@ import java.util.Map;
 /**
  * Region name → map region (label rect, unit grid) of a parsed world.svg, plus
  * the "submarine" sea grid. The first path of each name wins (as in 1.5).
+ * Alliance markers use the pole of inaccessibility of the largest landmass,
+ * not the SVG label-rect origin (those callouts often sit in the ocean).
  */
 public final class WorldRegions {
     private static WorldRegions instance;
@@ -54,17 +56,32 @@ public final class WorldRegions {
         }
         Map<String, SvgRect> labels = doc.layer.labels;
         Map<String, List<SvgRect>> grids = doc.layer.grids;
+        Map<String, List<List<Vector3>>> rings = new HashMap<String, List<List<Vector3>>>();
         for (SvgPath path : doc.layer.paths()) {
-            if (path.name == null || out.containsKey(path.name)) {
+            if (path.name == null) {
                 continue;
             }
-            Region region = new Region(path.name);
-            region.label = labels.get(region.name);
-            List<SvgRect> cells = grids.get(region.name);
-            if (cells != null) {
-                region.grid = cellsOf(cells);
+            if (!out.containsKey(path.name)) {
+                Region region = new Region(path.name);
+                region.label = labels.get(region.name);
+                List<SvgRect> cells = grids.get(region.name);
+                if (cells != null) {
+                    region.grid = cellsOf(cells);
+                }
+                out.put(path.name, region);
             }
-            out.put(path.name, region);
+            List<List<Vector3>> list = rings.get(path.name);
+            if (list == null) {
+                list = new ArrayList<List<Vector3>>();
+                rings.put(path.name, list);
+            }
+            list.add(path.points());
+        }
+        for (Map.Entry<String, List<List<Vector3>>> e : rings.entrySet()) {
+            Region region = out.get(e.getKey());
+            if (region != null) {
+                region.marker = RegionMarkers.interiorOfLargest(e.getValue());
+            }
         }
         Region sea = new Region("submarine");
         List<SvgRect> seaCells = grids.get("submarine");
