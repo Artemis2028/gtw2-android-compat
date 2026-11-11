@@ -62,6 +62,7 @@ public class BattleScreen extends ScreenAdapter {
     private int impactsSeen;
     private int siloLaunchesSeen;
     private int subLaunchesSeen;
+    private int bomberLaunchesSeen;
     private Label status;
     private Label ticker;
     private boolean shownGameOver;
@@ -169,8 +170,8 @@ public class BattleScreen extends ScreenAdapter {
         // second row at the left edge, which drew across Alaska (and any other
         // northern land under that strip). Keeping it between the buttons puts it
         // in the padded chrome above the continents.
-        root.add(speedButton).size(BattleHudLayout.SPEED_WIDTH, BattleHudLayout.SPEED_HEIGHT)
-                .left().pad(BattleHudLayout.TOP_PAD);
+        root.add(speedButton).size(BattleHudLayout.SPEED_WIDTH, BattleHudLayout.SPEED_BUTTON_HEIGHT)
+                .top().left().pad(BattleHudLayout.TOP_PAD);
         status = new Label("", game.skin);
         status.setAlignment(Align.center);
         status.setWrap(true);
@@ -297,6 +298,13 @@ public class BattleScreen extends ScreenAdapter {
             subLaunchesSeen = battle.subLaunches;
             for (int i = 0; i < extra; i++) {
                 Sounds.playSubLaunch();
+            }
+        }
+        if (battle.bomberLaunches > bomberLaunchesSeen) {
+            int extra = battle.bomberLaunches - bomberLaunchesSeen;
+            bomberLaunchesSeen = battle.bomberLaunches;
+            for (int i = 0; i < extra; i++) {
+                Sounds.playBomberLaunch();
             }
         }
         if (battle.finished && !shownGameOver) {
@@ -539,9 +547,10 @@ public class BattleScreen extends ScreenAdapter {
 
     /**
      * 2D stand-in for the original white {@code explosionObject} / {@code rocketobject}
-     * ellipsoid: a soft radial disc, white, alpha 0.5, additive blend (the shader
-     * blew out RGB via {@code 1/sin} which reads as a bloom). Size and lifetime
-     * come from {@link Explosion}.
+     * ellipsoid seen from above: an opaque disc whose brightness follows the shader
+     * ({@link Explosion#shade}), near-white in the middle and black at the rim. The
+     * original drew it with blending off, so it covers what is under it. Size and
+     * lifetime come from {@link Explosion}.
      */
     private void drawExplosions() {
         if (battle.explosions.isEmpty()) {
@@ -549,13 +558,13 @@ public class BattleScreen extends ScreenAdapter {
         }
         Texture texture = bloomTexture();
         game.batch.setProjectionMatrix(camera.combined);
-        game.batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+        game.batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         game.batch.begin();
         for (Explosion flash : battle.explosions) {
             float radius = flash.radius();
             float x = Missile.wrapX(flash.x);
             float y = -flash.z;
-            game.batch.setColor(1f, 1f, 1f, flash.alpha());
+            game.batch.setColor(Color.WHITE);
             game.batch.draw(texture, x - radius, y - radius, radius * 2f, radius * 2f);
             if (x - radius < 0f) {
                 game.batch.draw(texture, x - radius + Explosion.WORLD_WIDTH, y - radius,
@@ -567,23 +576,24 @@ public class BattleScreen extends ScreenAdapter {
         }
         game.batch.end();
         game.batch.setColor(Color.WHITE);
-        game.batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
     }
 
     private Texture bloomTexture() {
         if (bloom != null) {
             return bloom;
         }
-        int size = 128;
+        int size = 256;
         float center = (size - 1) * 0.5f;
+        float edge = 1f / center;  // one texel of anti-aliasing at the rim
         Pixmap pixmap = new Pixmap(size, size, Pixmap.Format.RGBA8888);
         for (int y = 0; y < size; y++) {
             for (int x = 0; x < size; x++) {
                 float dx = (x - center) / center;
                 float dy = (y - center) / center;
                 float dist = (float) Math.sqrt(dx * dx + dy * dy);
-                float falloff = dist >= 1f ? 0f : (1f - dist) * (1f - dist);
-                pixmap.setColor(1f, 1f, 1f, falloff);
+                float shade = Explosion.shade(Math.min(dist, 0.9999f));
+                float cover = Math.max(0f, Math.min(1f, (1f - dist) / edge + 0.5f));
+                pixmap.setColor(shade, shade, shade, cover);
                 pixmap.drawPixel(x, y);
             }
         }

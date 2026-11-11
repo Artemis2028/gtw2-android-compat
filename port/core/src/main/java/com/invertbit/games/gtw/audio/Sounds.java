@@ -5,8 +5,8 @@ import com.badlogic.gdx.audio.Sound;
 import com.invertbit.games.gtw.settings.GameSettings;
 
 /**
- * Select/button click ({@code sounds/select.ogg}), silo and submarine launch
- * cues, and impact ({@code impact.ogg}). Launch samples are throttled so a
+ * Select/button click ({@code sounds/select.ogg}), silo, submarine and bomber
+ * launch cues ({@code sounds/launch_bomber.ogg} is port-only), and impact ({@code impact.ogg}). Launch samples are throttled so a
  * salvo cannot stack dozens of overlapping voices.
  */
 public final class Sounds {
@@ -16,6 +16,7 @@ public final class Sounds {
     private static Sound impact;
     private static Sound launchSilo;
     private static Sound launchSub;
+    private static Sound launchBomber;
     private static long lastLaunchSoundMs;
 
     private Sounds() {}
@@ -29,6 +30,7 @@ public final class Sounds {
             impact = loadOne("sounds/impact.ogg");
             launchSilo = loadOne("sounds/launch_silo.ogg");
             launchSub = loadOne("sounds/launch_sub.ogg");
+            launchBomber = loadOne("sounds/launch_bomber.ogg");
         } catch (Exception ignored) {
             // Headless / missing assets: stay silent.
         }
@@ -55,6 +57,10 @@ public final class Sounds {
 
     public static void playSubLaunch() {
         playLaunch(launchSub);
+    }
+
+    public static void playBomberLaunch() {
+        playLaunch(launchBomber);
     }
 
     private static void playLaunch(Sound sound) {
@@ -96,6 +102,7 @@ public final class Sounds {
         impact = disposeOne(impact);
         launchSilo = disposeOne(launchSilo);
         launchSub = disposeOne(launchSub);
+        launchBomber = disposeOne(launchBomber);
         lastLaunchSoundMs = 0L;
     }
 
