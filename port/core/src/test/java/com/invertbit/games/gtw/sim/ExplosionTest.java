@@ -35,6 +35,25 @@ public class ExplosionTest {
     }
 
     @Test
+    public void shadeFollowsTheRocketobjectShaderFromCentreToRim() {
+        // centre: v = 0, p.y = -1 -> (1/0.9) * |sin(-1)|
+        assertEquals((float) (Math.sin(1.0) / 0.9), Explosion.shade(0f), 0.0005f);
+        assertEquals(0.935f, Explosion.shade(0f), 0.001f);
+        // half way out: v = asin(0.5)/PI = 1/6, p.y = -2/3
+        assertEquals((float) (Math.sin(2.0 / 3.0) / 0.9), Explosion.shade(0.5f), 0.0005f);
+        assertEquals(0f, Explosion.shade(1f), 0.0001f);
+        float prev = Explosion.shade(0f);
+        for (int i = 1; i <= 20; i++) {
+            float s = Explosion.shade(i / 20f);
+            assertTrue("shade must fall off towards the rim", s <= prev + 1e-6f);
+            assertTrue(s >= 0f && s <= 1f);
+            prev = s;
+        }
+        // much brighter than the old 0.5-alpha additive radial (0.5 at centre)
+        assertTrue(Explosion.shade(0f) > 0.9f);
+    }
+
+    @Test
     public void strikeSpawnsFlashAtTheTarget() {
         Match match = Match.create(Side.USA, Side.RUSSIA, 0);
         Battle battle = new Battle(match);

@@ -20,7 +20,22 @@ public final class BattleHudLayout {
     public static final float STATUS_PAD_TOP = 8f;
     public static final float STATUS_PAD_BOTTOM = 48f;
 
+    /**
+     * The Speed button itself is shorter than the 120px top bar and hugs its top,
+     * so Alaska's northernmost units (just under it at 2400x1080) keep a clear gap.
+     * Pause and the status slot still use the full {@link #SPEED_HEIGHT} bar.
+     */
+    public static final float SPEED_BUTTON_HEIGHT = 96f;
+    /** Minimum screen gap between the Speed button and any unit glyph (tests check it). */
+    public static final float SPEED_UNIT_CLEARANCE_PX = 16f;
+
     private BattleHudLayout() {}
+
+    /** Speed button in 1920×1080 UI space: {@code x, yFromBottom, width, height}. */
+    public static float[] speedButtonUi() {
+        return new float[]{TOP_PAD, GtwGame.UI_HEIGHT - TOP_PAD - SPEED_BUTTON_HEIGHT, SPEED_WIDTH,
+                SPEED_BUTTON_HEIGHT};
+    }
 
     /**
      * Status slot in 1920×1080 UI space: {@code x, yFromBottom, width, height}.

@@ -12,6 +12,16 @@ package com.invertbit.games.gtw.sim;
  * {@code explosionObject} material is {@code Color.WHITE} with the
  * {@code rocketobject} shader, which writes alpha 0.5. There is no separate
  * alpha tween — the flash disappears when age reaches duration.
+ *
+ * <p>Brightness ({@link #shade}): the shader's last live assignment is
+ * {@code c = v_color.rgb * abs(1.0 / 0.9*sin(p.y))} with {@code p = uv * 2 - 1}.
+ * GLSL reads that as {@code (1.0 / 0.9) * sin(p.y)}; the {@code 1/sin} glow line
+ * above it is overwritten. Seen from above, a sphere point at normalised radius
+ * {@code r} has {@code v = asin(r) / PI} (top half; the bottom half mirrors it),
+ * so the disc is {@code 0.935} white at the centre falling to black at the rim.
+ * The alpha 0.5 never blends: the original 1.7.0 {@code ModelBatch.begin} owns its
+ * render context and calls {@code glDisable(GL_BLEND)}, and the custom shader
+ * never turns blending back on, so the disc is drawn opaque.
  */
 public final class Explosion {
     public static final float DURATION = 5.0f;
@@ -47,7 +57,18 @@ public final class Explosion {
         return BASE_RADIUS * scale();
     }
 
+    /** Shader output alpha; unused for compositing because the original draws with blending off. */
     public float alpha() {
         return ALPHA;
+    }
+
+    /** {@code rocketobject} brightness at normalised radius {@code r} (0 centre, 1 rim) of the disc. */
+    public static float shade(float r) {
+        if (r >= 1f) {
+            return 0f;
+        }
+        float v = (float) (Math.asin(Math.max(0f, r)) / Math.PI);
+        float py = v * 2f - 1f;
+        return Math.min(1f, Math.abs((1.0f / 0.9f) * (float) Math.sin(py)));
     }
 }

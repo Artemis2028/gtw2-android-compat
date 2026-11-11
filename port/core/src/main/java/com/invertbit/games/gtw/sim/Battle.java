@@ -24,6 +24,8 @@ public final class Battle implements BattlePause.Sim {
     public int siloLaunches;
     /** Submarine missiles launched; the screen plays launch_sub when this grows. */
     public int subLaunches;
+    /** Bomber sorties launched; the screen plays launch_bomber when this grows. */
+    public int bomberLaunches;
     private int gameOverCalls;
 
     public Battle(Match match) {
@@ -195,6 +197,7 @@ public final class Battle implements BattlePause.Sim {
             source.ammo = 0;
             source.beginMoveTo(target);
             sorties.add(source);
+            bomberLaunches++;
             return;
         }
         if (source.kind == WeaponKind.SUBMARINE) {
