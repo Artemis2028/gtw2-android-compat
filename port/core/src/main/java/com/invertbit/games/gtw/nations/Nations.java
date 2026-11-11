@@ -252,13 +252,20 @@ public final class Nations {
             new City("Cape Town", -33.925, 18.424, 1599, 1325),
     };
 
+    /*
+     * Every slot sits on SOUTH_AMERICA's own land (brazil or chile) and clear of
+     * mexico's grid. Bogota and Caracas used to fill the last two slots, but they
+     * lie in mexico's northern-SA lobe, so an ally holding mexico could place units
+     * on them and they were drawn on another side's land. Manaus and Brasilia keep
+     * the six-city count and the northern/central spread.
+     */
     private static final City[] SOUTH_AMERICA_CITIES = {
             new City("Sao Paulo", -23.551, -46.633, 1064, 1219),
             new City("Buenos Aires", -34.603, -58.382, 969, 1339),
             new City("Santiago", -33.449, -70.669, 870, 1327),
             new City("Lima", -12.046, -77.043, 819, 1094),
-            new City("Bogota", 4.711, -74.072, 843, 913),
-            new City("Caracas", 10.480, -66.903, 901, 850),
+            new City("Manaus", -3.119, -60.022, 956, 998),
+            new City("Brasilia", -15.794, -47.882, 1054, 1135),
     };
 
     public static List<City> cities(Side side) {
