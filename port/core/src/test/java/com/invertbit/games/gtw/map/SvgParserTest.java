@@ -103,4 +103,47 @@ public class SvgParserTest {
             assertEquals(RegionId.pacific, RegionId.valueOf(owner));
         }
     }
+
+    /** User decision (t136u): one Pacific grid cell on Taiwan so units can deploy there. */
+    @Test
+    public void taiwanHasOnePacificGridCellOnTheIsland() throws Exception {
+        WorldMap map = WorldMap.load(new FileInputStream(SVG));
+        java.util.Map<String, com.invertbit.games.gtw.sim.Region> regions =
+                com.invertbit.games.gtw.sim.WorldRegions.load(new FileInputStream(SVG));
+        float tx = 1440.5f + 8.069f * 120.96f;
+        float tz = 963.7f - 10.854f * 23.70f;
+        java.util.List<com.badlogic.gdx.math.Vector3> taiwan = null;
+        for (WorldMap.Outline outline : map.outlines) {
+            if ("pacific".equals(outline.name)
+                    && com.invertbit.games.gtw.sim.RegionMarkers.contains(outline.points, tx, tz)) {
+                taiwan = outline.points;
+            }
+        }
+        assertNotNull("Taiwan outline", taiwan);
+        java.util.List<com.badlogic.gdx.math.Vector3> pacific = regions.get("pacific").grid;
+        assertEquals("Japan/Korea had 4 Pacific cells; Taiwan adds one", 5, pacific.size());
+        int onTaiwan = 0;
+        for (com.badlogic.gdx.math.Vector3 cell : pacific) {
+            if (!com.invertbit.games.gtw.sim.RegionMarkers.contains(taiwan, cell.x, cell.z)) {
+                continue;
+            }
+            onTaiwan++;
+            for (WorldMap.Outline outline : map.outlines) {
+                if (!"pacific".equals(outline.name)) {
+                    assertTrue("Taiwan cell is inside " + outline.name,
+                            !com.invertbit.games.gtw.sim.RegionMarkers.contains(outline.points, cell.x, cell.z));
+                }
+            }
+            for (com.invertbit.games.gtw.sim.Region other : regions.values()) {
+                if ("pacific".equals(other.name) || "submarine".equals(other.name)) {
+                    continue;
+                }
+                for (com.badlogic.gdx.math.Vector3 g : other.grid) {
+                    float d = (float) Math.hypot(g.x - cell.x, g.z - cell.z);
+                    assertTrue("Taiwan cell is " + d + " from a " + other.name + " cell", d >= 40f);
+                }
+            }
+        }
+        assertEquals("exactly one Pacific cell on Taiwan", 1, onTaiwan);
+    }
 }
