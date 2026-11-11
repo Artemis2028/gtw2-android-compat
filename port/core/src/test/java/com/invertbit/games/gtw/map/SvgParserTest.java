@@ -80,4 +80,27 @@ public class SvgParserTest {
         assertTrue("russia should keep far-east/island rings after dissolving seams: " + russia, russia >= 2);
         assertTrue("china should keep Hainan after dissolving Mongolia: " + china, china >= 2);
     }
+
+    /** User decision (t135u): Taiwan is part of the Pacific region, drawn like the Philippines pieces. */
+    @Test
+    public void taiwanIsPacificTerritory() throws Exception {
+        WorldMap map = WorldMap.load(new FileInputStream(SVG));
+        // Taiwan's centre and both tips, projected x = 1440.5 + 8.069 lon, z = 963.7 - 10.854 lat
+        float[][] lonLat = {{120.96f, 23.70f}, {121.50f, 25.15f}, {120.85f, 22.05f}};
+        for (float[] p : lonLat) {
+            float x = 1440.5f + 8.069f * p[0];
+            float z = 963.7f - 10.854f * p[1];
+            String owner = null;
+            int hits = 0;
+            for (WorldMap.Outline outline : map.outlines) {
+                if (com.invertbit.games.gtw.sim.RegionMarkers.contains(outline.points, x, z)) {
+                    owner = outline.name;
+                    hits++;
+                }
+            }
+            assertEquals("exactly one outline covers Taiwan at " + p[0] + "," + p[1], 1, hits);
+            assertEquals("pacific", owner);
+            assertEquals(RegionId.pacific, RegionId.valueOf(owner));
+        }
+    }
 }

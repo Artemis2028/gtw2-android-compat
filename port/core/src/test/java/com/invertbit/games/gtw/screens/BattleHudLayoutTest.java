@@ -2,13 +2,18 @@ package com.invertbit.games.gtw.screens;
 
 import com.badlogic.gdx.math.Vector3;
 import com.invertbit.games.gtw.GtwGame;
+import com.invertbit.games.gtw.map.ObjectGlyphs;
 import com.invertbit.games.gtw.map.WorldMap;
 import com.invertbit.games.gtw.nations.Nations;
 import com.invertbit.games.gtw.nations.Side;
+import com.invertbit.games.gtw.sim.Region;
+import com.invertbit.games.gtw.sim.WorldRegions;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -67,6 +72,88 @@ public class BattleHudLayoutTest {
         int hits = landHits(map, Side.USA, view, 2400f, 1080f, legacy);
         assertTrue("sanity: the old second-row status should overlap USA/Alaska, not "
                 + hits + " points", hits > 0);
+    }
+
+    @Test
+    public void speedButtonClearsEveryUnitGlyphWithMargin() throws Exception {
+        WorldMap map = loadMap();
+        View view = fittedView(map);
+        Map<String, Region> regions = loadRegions();
+        float[] reach = glyphReach();
+        for (int s = 0; s < SCREENS.length; s++) {
+            float screenW = SCREENS[s][0];
+            float screenH = SCREENS[s][1];
+            float[] speed = BattleHudLayout.uiRectToScreen(
+                    BattleHudLayout.speedButtonUi(), screenW, screenH);
+            float worst = Float.MAX_VALUE;
+            String where = "";
+            for (Region region : regions.values()) {
+                for (com.badlogic.gdx.math.Vector3 cell : region.grid) {
+                    // glyph footprint in world units around the unit, y up = -z
+                    float[] a = view.project(cell.x + reach[0], -(cell.z + reach[3]), screenW, screenH);
+                    float[] b = view.project(cell.x + reach[2], -(cell.z + reach[1]), screenW, screenH);
+                    float gap = rectGap(speed, Math.min(a[0], b[0]), Math.min(a[1], b[1]),
+                            Math.max(a[0], b[0]), Math.max(a[1], b[1]));
+                    if (gap < worst) {
+                        worst = gap;
+                        where = region.name + " @" + (int) cell.x + "," + (int) cell.z;
+                    }
+                }
+            }
+            assertTrue("Speed button is only " + worst + " px from the " + where + " unit on "
+                            + (int) screenW + "x" + (int) screenH,
+                    worst >= BattleHudLayout.SPEED_UNIT_CLEARANCE_PX);
+        }
+    }
+
+    @Test
+    public void speedButtonStillSitsInTheTopLeftChrome() {
+        float[] speed = BattleHudLayout.speedButtonUi();
+        assertEquals(BattleHudLayout.TOP_PAD, speed[0], 0.01f);
+        assertEquals(GtwGame.UI_HEIGHT - BattleHudLayout.TOP_PAD, speed[1] + speed[3], 0.01f);
+        assertTrue("speed button must fit in the top bar", speed[3] <= BattleHudLayout.SPEED_HEIGHT);
+        float[] status = BattleHudLayout.statusSlotUi();
+        assertTrue("status must start right of the speed button", status[0] > speed[0] + speed[2]);
+    }
+
+    /** Pixel distance between two screen rects (0 when they touch or overlap). */
+    private static float rectGap(float[] r, float x0, float y0, float x1, float y1) {
+        float dx = Math.max(0f, Math.max(r[0] - x1, x0 - (r[0] + r[2])));
+        float dy = Math.max(0f, Math.max(r[1] - y1, y0 - (r[1] + r[3])));
+        return (float) Math.sqrt(dx * dx + dy * dy);
+    }
+
+    /** Union footprint of every unit glyph relative to its unit: minX, minZ, maxX, maxZ. */
+    private static float[] glyphReach() throws Exception {
+        FileInputStream in = new FileInputStream(com.invertbit.games.gtw.map.ObjectGlyphsTestAccess.objectsSvg());
+        ObjectGlyphs glyphs;
+        try {
+            glyphs = ObjectGlyphs.load(in);
+        } finally {
+            in.close();
+        }
+        float[] r = {Float.MAX_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE};
+        for (ObjectGlyphs.Kind kind : ObjectGlyphs.Kind.values()) {
+            float[] off = ObjectGlyphs.offset(kind);
+            for (List<com.badlogic.gdx.math.Vector3> path : glyphs.paths(kind)) {
+                for (com.badlogic.gdx.math.Vector3 p : path) {
+                    r[0] = Math.min(r[0], p.x + off[0]);
+                    r[1] = Math.min(r[1], p.z + off[1]);
+                    r[2] = Math.max(r[2], p.x + off[0]);
+                    r[3] = Math.max(r[3], p.z + off[1]);
+                }
+            }
+        }
+        return r;
+    }
+
+    private static Map<String, Region> loadRegions() throws Exception {
+        FileInputStream in = new FileInputStream(worldFile());
+        try {
+            return WorldRegions.load(in);
+        } finally {
+            in.close();
+        }
     }
 
     private static int landHits(WorldMap map, Side side, View view,
@@ -141,25 +228,24 @@ public class BattleHudLayoutTest {
         }
     }
 
-    private static WorldMap loadMap() throws Exception {
+    private static File worldFile() {
         String[] candidates = {
                 "../../src/android/src/main/assets/world.svg",
                 "../src/android/src/main/assets/world.svg",
                 "src/android/src/main/assets/world.svg",
                 "../android/src/main/assets/world.svg"
         };
-        File file = null;
         for (int i = 0; i < candidates.length; i++) {
             File f = new File(candidates[i]);
             if (f.isFile()) {
-                file = f;
-                break;
+                return f;
             }
         }
-        if (file == null) {
-            throw new AssertionError("world.svg not found");
-        }
-        FileInputStream in = new FileInputStream(file);
+        throw new AssertionError("world.svg not found");
+    }
+
+    private static WorldMap loadMap() throws Exception {
+        FileInputStream in = new FileInputStream(worldFile());
         try {
             return WorldMap.load(in);
         } finally {

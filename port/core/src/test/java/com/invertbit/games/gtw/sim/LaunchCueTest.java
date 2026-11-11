@@ -16,6 +16,7 @@ public class LaunchCueTest {
         battle.launch(silo, city);
         assertEquals(1, battle.siloLaunches);
         assertEquals(0, battle.subLaunches);
+        assertEquals(0, battle.bomberLaunches);
         assertEquals(1, battle.missiles.size());
     }
 
@@ -27,17 +28,19 @@ public class LaunchCueTest {
         battle.launch(sub, city);
         assertEquals(0, battle.siloLaunches);
         assertEquals(1, battle.subLaunches);
+        assertEquals(0, battle.bomberLaunches);
         assertEquals(1, battle.missiles.size());
     }
 
     @Test
-    public void bomberSortieDoesNotCountAsMissileLaunchCue() {
+    public void bomberSortieCountsAsBomberCueNotMissileCue() {
         Launcher bomber = Launcher.bomber(new Vector3(10f, 0f, 10f), 10);
         Battle battle = armed(bomber);
         City city = targetOf(battle);
         battle.launch(bomber, city);
         assertEquals(0, battle.siloLaunches);
         assertEquals(0, battle.subLaunches);
+        assertEquals(1, battle.bomberLaunches);
         assertEquals(0, battle.missiles.size());
         assertEquals(1, battle.sorties.size());
     }
