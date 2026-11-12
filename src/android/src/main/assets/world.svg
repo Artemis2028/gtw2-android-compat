@@ -1443,9 +1443,27 @@
        style="fill:#0000ff;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        id="rect4088"
        width="42.14344"
-       height="133.57117"
-       x="2577.8572"
-       y="471.42853"
+       height="42.14344"
+       x="2576.8"
+       y="481.4"
+       transform="translate(0,-867.63782)"
+       onclick="pacific" />
+    <rect
+       style="fill:#0000ff;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       id="rect4088_b"
+       width="42.14344"
+       height="42.14344"
+       x="2567.9"
+       y="528.0"
+       transform="translate(0,-867.63782)"
+       onclick="pacific" />
+    <rect
+       style="fill:#0000ff;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       id="rect4088_c"
+       width="42.14344"
+       height="42.14344"
+       x="2564.0"
+       y="563.5"
        transform="translate(0,-867.63782)"
        onclick="pacific" />
     <rect
