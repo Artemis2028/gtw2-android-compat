@@ -146,4 +146,36 @@ public class SvgParserTest {
         }
         assertEquals("exactly one Pacific cell on Taiwan", 1, onTaiwan);
     }
+
+    /** User decision (t138u): Japan's cells were just offshore; every Pacific cell must be on Pacific land. */
+    @Test
+    public void everyPacificGridCellLiesInsideAPacificOutline() throws Exception {
+        WorldMap map = WorldMap.load(new FileInputStream(SVG));
+        java.util.Map<String, com.invertbit.games.gtw.sim.Region> regions =
+                com.invertbit.games.gtw.sim.WorldRegions.load(new FileInputStream(SVG));
+        java.util.List<com.badlogic.gdx.math.Vector3> pacific = regions.get("pacific").grid;
+        assertEquals(5, pacific.size());
+        for (com.badlogic.gdx.math.Vector3 cell : pacific) {
+            String where = cell.x + "," + cell.z;
+            boolean home = false;
+            for (WorldMap.Outline outline : map.outlines) {
+                boolean in = com.invertbit.games.gtw.sim.RegionMarkers.contains(outline.points, cell.x, cell.z);
+                if ("pacific".equals(outline.name)) {
+                    home |= in;
+                } else {
+                    assertTrue("Pacific cell " + where + " is inside " + outline.name, !in);
+                }
+            }
+            assertTrue("Pacific cell " + where + " is not on Pacific land", home);
+            for (com.invertbit.games.gtw.sim.Region other : regions.values()) {
+                if ("pacific".equals(other.name) || "submarine".equals(other.name)) {
+                    continue;
+                }
+                for (com.badlogic.gdx.math.Vector3 g : other.grid) {
+                    float d = (float) Math.hypot(g.x - cell.x, g.z - cell.z);
+                    assertTrue("Pacific cell " + where + " is " + d + " from a " + other.name + " cell", d >= 40f);
+                }
+            }
+        }
+    }
 }
