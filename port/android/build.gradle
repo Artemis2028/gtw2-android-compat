@@ -18,8 +18,8 @@ android {
         applicationId 'com.invertbit.games.gtw.android.port'
         minSdk 21
         targetSdk 35
-        versionCode 16
-        versionName '1.16-port-m16'
+        versionCode 17
+        versionName '1.17-port-m17'
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
